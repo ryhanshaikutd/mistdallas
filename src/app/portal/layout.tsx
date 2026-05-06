@@ -11,8 +11,7 @@ export default async function PortalLayout({ children }: { children: React.React
 
   // Use admin client so RLS never blocks the profile read
   const admin = createAdminClient();
-  const { data: profile, error: profileError } = await admin.from("profiles").select("*").eq("id", user.id).single();
-  if (profileError) console.error("[portal/layout] profile fetch error:", profileError.message, "user.id:", user.id);
+  const { data: profile } = await admin.from("profiles").select("*").eq("id", user.id).single();
 
   if (profile && !profile.onboarded) redirect("/onboarding");
 
