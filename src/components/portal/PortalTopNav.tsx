@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Users, Calendar, BarChart3, CheckSquare, LogOut, ChevronDown } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, Calendar, BarChart3, CheckSquare, Settings, LogOut, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import type { Profile } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
@@ -81,6 +81,14 @@ export default function PortalTopNav({ profile }: Props) {
               <div className="text-xs font-semibold" style={{ color: "var(--p-text)" }}>{displayName}</div>
               <div className="text-xs" style={{ color: "var(--p-muted)" }}>{profile?.role?.replace(/_/g, " ")}</div>
             </div>
+            <Link href="/portal/settings" onClick={() => setMenuOpen(false)}
+              className="w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors"
+              style={{ color: "var(--p-muted)" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--p-card-hover)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
+            >
+              <Settings className="w-3.5 h-3.5" /> Settings
+            </Link>
             <button onClick={signOut}
               className="w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors"
               style={{ color: "var(--p-muted)" }}
