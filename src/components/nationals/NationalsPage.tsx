@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Trophy } from "lucide-react";
 
 interface Qualifier {
@@ -46,23 +46,68 @@ const EVENT_TO_BROAD: Record<string, BroadCat> = {
   "Soccer (Male)": "Sports", "Soccer (Female)": "Sports", "Flag Football": "Sports",
 };
 
-const PLACEMENT_STYLE: Record<string, { bg: string; color: string }> = {
-  "1st": { bg: "rgba(255,200,0,0.15)", color: "#B8860B" },
-  "2nd": { bg: "rgba(160,160,160,0.15)", color: "#6B7280" },
-  "3rd": { bg: "rgba(180,100,30,0.15)", color: "#92400E" },
-  "4th": { bg: "rgba(0,0,0,0.05)", color: "#9CA3AF" },
-  "5th": { bg: "rgba(0,0,0,0.05)", color: "#9CA3AF" },
+const PLACEMENT_STYLE: Record<string, { bg: string; color: string; label: string }> = {
+  "1st": { bg: "rgba(255,210,0,0.22)", color: "#FFD700", label: "1st" },
+  "2nd": { bg: "rgba(210,210,210,0.18)", color: "#D4D4D4", label: "2nd" },
+  "3rd": { bg: "rgba(205,140,60,0.22)", color: "#E8A84A", label: "3rd" },
+  "4th": { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)", label: "4th" },
+  "5th": { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)", label: "5th" },
 };
 
 const PLACEMENT_ORDER = ["1st", "2nd", "3rd", "4th", "5th"];
 
+// Animated counter
+function StatCounter({ target, label, delay = 0 }: { target: number; label: string; delay?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        setTimeout(() => {
+          const duration = 1200;
+          const startTime = performance.now();
+          function tick(now: number) {
+            const t = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - t, 3);
+            setCount(Math.round(eased * target));
+            if (t < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        }, delay);
+      }
+    }, { threshold: 0.4 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, delay]);
+
+  return (
+    <div ref={ref} className="text-center px-6 py-5 rounded-2xl" style={{ background: "rgba(27,52,100,0.06)" }}>
+      <div className="text-4xl font-extrabold text-[#1B3464] tabular-nums" style={{ fontFamily: "var(--font-syne)" }}>
+        {count.toLocaleString()}
+      </div>
+      <div className="text-[11px] text-gray-400 uppercase tracking-widest mt-2 font-semibold">{label}</div>
+    </div>
+  );
+}
+
 export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] }) {
   const [activeCat, setActiveCat] = useState<BroadCat>("Knowledge & Quran");
   const [expandedYears, setExpandedYears] = useState<number[]>([]);
+  const [catKey, setCatKey] = useState(0);
 
   const years = Array.from(new Set(qualifiers.map(q => q.year))).sort((a, b) => b - a);
   const currentYear = years[0];
   const pastYears = years.slice(1);
+
+  function handleCatChange(c: BroadCat) {
+    setActiveCat(c);
+    setCatKey(k => k + 1);
+  }
 
   function YearBlock({ year }: { year: number }) {
     const yearQuals = qualifiers.filter(q => q.year === year);
@@ -80,64 +125,97 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
 
     const availableCats = BROAD_CATEGORIES.filter(c => byCat[c]);
     const cat = availableCats.includes(activeCat) ? activeCat : availableCats[0];
+    const entries = Object.entries(byCat[cat] ?? {});
 
     return (
       <div>
-        {/* Stats */}
-        <div className="flex flex-wrap gap-8 justify-center mb-12">
-          {[
-            { val: totalSlots, label: "Qualifying Slots" },
-            { val: uniqueSchools, label: "Schools" },
-            { val: uniqueEvents, label: "Events" },
-            { val: year, label: "Season" },
-          ].map(({ val, label }) => (
-            <div key={label} className="text-center">
-              <div className="text-4xl font-extrabold text-[#1B3464]" style={{ fontFamily: "var(--font-syne)" }}>{val}</div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest mt-1.5">{label}</div>
-            </div>
-          ))}
+        {/* Stats row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-14">
+          <StatCounter target={totalSlots} label="Qualifying Slots" delay={0} />
+          <StatCounter target={uniqueSchools} label="Schools" delay={80} />
+          <StatCounter target={uniqueEvents} label="Events" delay={160} />
+          <StatCounter target={year} label="Season" delay={240} />
         </div>
 
         {/* Category tabs */}
         <div className="flex gap-2 overflow-x-auto pb-3 mb-8" style={{ scrollbarWidth: "none" }}>
           {availableCats.map(c => (
-            <button key={c} onClick={() => setActiveCat(c)}
-              className="flex-shrink-0 text-xs font-semibold px-4 py-2 rounded-full border transition-all duration-200"
+            <button
+              key={c}
+              onClick={() => handleCatChange(c)}
+              className="flex-shrink-0 text-xs font-semibold px-5 py-2.5 rounded-full transition-all duration-200"
               style={cat === c
-                ? { background: "#1B3464", color: "#ffffff", borderColor: "#1B3464" }
-                : { background: "transparent", color: "#9CA3AF", borderColor: "#E5E7EB" }
-              }>
+                ? {
+                    background: "linear-gradient(135deg, #1B3464 0%, #0F2240 100%)",
+                    color: "#ffffff",
+                    boxShadow: "0 4px 14px rgba(27,52,100,0.35)",
+                  }
+                : {
+                    background: "rgba(27,52,100,0.06)",
+                    color: "#6B7280",
+                    border: "1px solid transparent",
+                  }
+              }
+            >
               {c}
             </button>
           ))}
         </div>
 
         {/* Event grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(byCat[cat] ?? {}).map(([event, rows]) => {
+        <div key={catKey} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {entries.map(([event, rows], cardIdx) => {
             const sorted = [...rows].sort(
               (a, b) => PLACEMENT_ORDER.indexOf(a.placement ?? "") - PLACEMENT_ORDER.indexOf(b.placement ?? "")
             );
             return (
-              <div key={event} className="rounded-2xl p-5 transition-all duration-300" style={{ background: "#1B3464" }}>
-                <div className="text-[#7ADBB8] text-xs font-bold uppercase tracking-wide mb-4">{event}</div>
+              <div
+                key={event}
+                className="rounded-2xl p-5 group"
+                style={{
+                  background: "linear-gradient(145deg, #1E3A6E 0%, #0F2240 100%)",
+                  border: "1px solid rgba(122,219,184,0.12)",
+                  boxShadow: "0 2px 12px rgba(15,34,64,0.15)",
+                  animation: "cardSlideUp 0.4s cubic-bezier(0.22,1,0.36,1) both",
+                  animationDelay: `${cardIdx * 45}ms`,
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 12px 32px rgba(15,34,64,0.3)";
+                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(122,219,184,0.35)";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 12px rgba(15,34,64,0.15)";
+                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(122,219,184,0.12)";
+                }}
+              >
+                {/* Mint accent line */}
+                <div className="w-6 h-0.5 rounded-full mb-3" style={{ background: "#7ADBB8", opacity: 0.6 }} />
+                <div className="text-[#7ADBB8] text-[11px] font-bold uppercase tracking-widest mb-4">{event}</div>
                 <div className="space-y-3">
                   {sorted.map((q, idx) => {
                     const ps = PLACEMENT_STYLE[q.placement ?? "5th"] ?? PLACEMENT_STYLE["5th"];
                     const ids = q.mist_ids ? q.mist_ids.split(",") : [];
                     return (
-                      <div key={`${q.id}-${idx}`} className="flex items-start gap-2.5">
-                        <span className="flex-shrink-0 text-[11px] font-bold w-8 h-6 rounded flex items-center justify-center mt-0.5"
-                          style={{ background: ps.bg, color: ps.color }}>
+                      <div key={`${q.id}-${idx}`} className="flex items-start gap-3">
+                        <span
+                          className="flex-shrink-0 text-[10px] font-bold w-9 h-6 rounded-md flex items-center justify-center mt-0.5 tracking-wide"
+                          style={{ background: ps.bg, color: ps.color }}
+                        >
                           {q.placement}
                         </span>
                         <div className="min-w-0">
-                          <div className="text-white text-sm leading-tight">{q.school}</div>
+                          <div className="text-white/90 text-sm leading-tight font-medium">{q.school}</div>
                           {ids.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1.5">
                               {ids.map(mid => (
-                                <span key={mid} className="text-[10px] font-mono px-1.5 py-0.5 rounded"
-                                  style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)" }}>
+                                <span
+                                  key={mid}
+                                  className="text-[9px] font-mono px-1.5 py-0.5 rounded"
+                                  style={{ background: "rgba(122,219,184,0.1)", color: "rgba(122,219,184,0.5)" }}
+                                >
                                   {mid}
                                 </span>
                               ))}
@@ -157,70 +235,97 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
+    <>
+      <style>{`
+        @keyframes cardSlideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes heroFadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
 
-      {/* Nav */}
-      <div className="flex-shrink-0 flex items-center justify-between px-6 h-16 border-b border-gray-100 bg-white">
-        <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-gray-700 transition-colors text-sm font-medium">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Link>
-        <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="MIST Dallas" width={24} height={24} className="object-contain opacity-70" />
-          <span className="font-bold text-sm text-gray-500" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas · Nationals</span>
-        </div>
-        <div className="w-16" />
-      </div>
+      <div className="min-h-screen text-gray-900 flex flex-col" style={{ background: "linear-gradient(180deg, #EEF2FF 0%, #F8FAFC 200px)" }}>
 
-      <div className="flex-1 max-w-6xl mx-auto w-full px-6 py-16">
-
-        {/* Header */}
-        <div className="text-center mb-16">
-          <span className="text-[#2EA87A] text-xs font-bold uppercase tracking-widest">2026 Nationals</span>
-          <h1 className="text-5xl md:text-7xl font-extrabold text-[#1B3464] mt-4 leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
-            Dallas in the Limelight.
-          </h1>
-          <p className="text-gray-400 mt-4 text-lg max-w-lg mx-auto">
-            Every school and qualifier that earned their spot on the national stage.
-          </p>
-        </div>
-
-        {qualifiers.length === 0 ? (
-          <div className="text-center py-24">
-            <div className="inline-flex items-center gap-3 bg-white border border-gray-100 shadow-sm rounded-2xl px-8 py-6">
-              <Trophy className="w-6 h-6 text-[#2EA87A]" />
-              <span className="text-gray-400 font-medium">Nationals qualifiers will be announced after MIST Weekend.</span>
-            </div>
+        {/* Nav */}
+        <div className="flex-shrink-0 flex items-center justify-between px-6 h-16 border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-20">
+          <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-gray-700 transition-colors text-sm font-medium">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Link>
+          <div className="flex items-center gap-3">
+            <Image src="/logo.png" alt="MIST Dallas" width={24} height={24} className="object-contain opacity-60" />
+            <span className="font-bold text-sm text-gray-400" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas · Nationals</span>
           </div>
-        ) : (
-          <>
-            <YearBlock year={currentYear} />
+          <div className="w-16" />
+        </div>
 
-            {/* Past years accordion */}
-            {pastYears.length > 0 && (
-              <div className="mt-20 border-t border-gray-100 pt-14">
-                <h3 className="text-gray-300 text-sm font-semibold uppercase tracking-widest mb-6 text-center">Past Years</h3>
-                {pastYears.map(year => {
-                  const isOpen = expandedYears.includes(year);
-                  return (
-                    <div key={year} className="mb-4">
-                      <button
-                        onClick={() => setExpandedYears(prev =>
-                          isOpen ? prev.filter(y => y !== year) : [...prev, year]
-                        )}
-                        className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all"
-                      >
-                        <span className="text-gray-500 font-semibold" style={{ fontFamily: "var(--font-syne)" }}>{year} Season</span>
-                        <span className="text-gray-300 text-sm">{isOpen ? "▲" : "▼"}</span>
-                      </button>
-                      {isOpen && <div className="mt-6"><YearBlock year={year} /></div>}
-                    </div>
-                  );
-                })}
+        <div className="flex-1 max-w-6xl mx-auto w-full px-6 py-16">
+
+          {/* Header */}
+          <div className="text-center mb-16" style={{ animation: "heroFadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both" }}>
+            <span
+              className="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5"
+              style={{ background: "rgba(27,52,100,0.08)", color: "#1B3464" }}
+            >
+              2026 Nationals
+            </span>
+            <h1
+              className="text-5xl md:text-7xl font-extrabold leading-tight"
+              style={{
+                fontFamily: "var(--font-syne)",
+                background: "linear-gradient(135deg, #1B3464 0%, #2E5BA8 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Dallas in the Limelight.
+            </h1>
+            <p className="text-gray-400 mt-5 text-lg max-w-lg mx-auto leading-relaxed">
+              Every school and qualifier that earned their spot on the national stage.
+            </p>
+          </div>
+
+          {qualifiers.length === 0 ? (
+            <div className="text-center py-24">
+              <div className="inline-flex items-center gap-3 bg-white border border-gray-100 shadow-sm rounded-2xl px-8 py-6">
+                <Trophy className="w-6 h-6 text-[#2EA87A]" />
+                <span className="text-gray-400 font-medium">Nationals qualifiers will be announced after MIST Weekend.</span>
               </div>
-            )}
-          </>
-        )}
+            </div>
+          ) : (
+            <>
+              <YearBlock year={currentYear} />
+
+              {/* Past years accordion */}
+              {pastYears.length > 0 && (
+                <div className="mt-20 border-t border-gray-100 pt-14">
+                  <h3 className="text-gray-300 text-sm font-semibold uppercase tracking-widest mb-6 text-center">Past Years</h3>
+                  {pastYears.map(year => {
+                    const isOpen = expandedYears.includes(year);
+                    return (
+                      <div key={year} className="mb-3">
+                        <button
+                          onClick={() => setExpandedYears(prev =>
+                            isOpen ? prev.filter(y => y !== year) : [...prev, year]
+                          )}
+                          className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white border border-gray-100 hover:border-[#1B3464]/20 hover:shadow-sm transition-all duration-200"
+                        >
+                          <span className="text-gray-500 font-semibold" style={{ fontFamily: "var(--font-syne)" }}>{year} Season</span>
+                          <span className="text-gray-300 text-sm">{isOpen ? "▲" : "▼"}</span>
+                        </button>
+                        {isOpen && <div className="mt-4"><YearBlock year={year} /></div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
