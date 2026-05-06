@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import { useState, useEffect, useRef } from "react";
 import {
   Trophy, Users, Music, BookOpen, Swords,
@@ -10,9 +9,6 @@ import {
 } from "lucide-react";
 import GalleryCarousel from "./GalleryCarousel";
 
-declare global {
-  interface Window { instgrm?: { Embeds: { process(): void } } }
-}
 
 const NAV_LINKS = [
   { label: "About", href: "#about" },
@@ -133,65 +129,57 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
       </nav>
 
       {/* ── HERO ── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden" style={{ background: "linear-gradient(135deg, #060D18 0%, #0F1B2D 50%, #091628 100%)" }}>
-        {/* Subtle grid texture */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-        }} />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#060D18]/60" />
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#060D18]">
+        {/* Background video */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/hero.mp4" type="video/mp4" />
+        </video>
 
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 pt-28 pb-16">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        {/* Dark overlay so text is legible */}
+        <div className="absolute inset-0 bg-black/55" />
+        {/* Bottom fade for smooth transition into next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#060D18] to-transparent" />
 
-            {/* Left: branding */}
-            <div style={{ animation: "fadeInUp 0.9s ease 0.1s both" }}>
-              <div className="inline-flex items-center gap-2 bg-white/8 backdrop-blur-sm border border-white/12 text-[#7ADBB8] text-xs font-semibold px-4 py-1.5 rounded-full mb-8">
-                Texas Regional Chapter · 2026 Board
-              </div>
-              <h1 className="text-7xl md:text-8xl font-extrabold text-white leading-[0.85] tracking-tight mb-6"
-                style={{ fontFamily: "var(--font-syne)" }}>
-                MIST<br />Dallas
-              </h1>
-              <p className="text-lg text-white/50 mb-10 max-w-sm font-light leading-relaxed">
-                Where faith meets excellence. Muslim high schoolers competing, growing, and thriving — together.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/portal" className="flex items-center justify-center gap-2 bg-white text-[#1B3464] font-bold px-8 py-4 rounded-full hover:bg-[#7ADBB8] transition-all duration-300 hover:scale-105 text-base">
-                  Apply for Board <ArrowRight className="w-5 h-5" />
-                </Link>
-                <Link href="#about" className="flex items-center justify-center gap-2 border border-white/20 text-white/70 font-medium px-8 py-4 rounded-full hover:border-white/50 hover:text-white transition-all duration-300 text-base">
-                  Learn More
-                </Link>
-              </div>
-            </div>
-
-            {/* Right: Instagram reel */}
-            <div className="flex justify-center lg:justify-end" style={{ animation: "fadeInUp 0.9s ease 0.3s both" }}>
-              <div className="w-full max-w-[380px]">
-                <blockquote
-                  className="instagram-media rounded-3xl overflow-hidden"
-                  data-instgrm-captioned
-                  data-instgrm-permalink="https://www.instagram.com/reel/DGV-3U8xeKl/?utm_source=ig_embed&utm_campaign=loading"
-                  data-instgrm-version="14"
-                  style={{ background: "#fff", border: 0, borderRadius: 16, margin: 0, width: "100%" }}
-                />
-              </div>
-            </div>
+        {/* Content */}
+        <div className="relative z-10 text-center px-6" style={{ animation: "fadeInUp 1s ease 0.2s both" }}>
+          <p className="text-[#7ADBB8] text-xs font-bold uppercase tracking-[0.3em] mb-6"
+            style={{ animation: "fadeInDown 0.8s ease both" }}>
+            Established 2018 &nbsp;·&nbsp; Texas Regional Chapter
+          </p>
+          <h1
+            className="text-8xl md:text-[11rem] font-extrabold text-white leading-none tracking-tight"
+            style={{ fontFamily: "var(--font-syne)", animation: "fadeInUp 0.9s ease 0.15s both" }}
+          >
+            MIST<br />Dallas
+          </h1>
+          <p className="mt-8 text-white/50 text-lg font-light tracking-wide"
+            style={{ animation: "fadeInUp 0.9s ease 0.3s both" }}>
+            Where faith meets excellence.
+          </p>
+          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
+            style={{ animation: "fadeInUp 0.9s ease 0.45s both" }}>
+            <Link href="/portal"
+              className="flex items-center justify-center gap-2 bg-white text-[#1B3464] font-bold px-8 py-4 rounded-full hover:bg-[#7ADBB8] transition-all duration-300 hover:scale-105 text-base">
+              Apply for Board <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link href="#about"
+              className="flex items-center justify-center gap-2 border border-white/25 text-white/75 font-medium px-8 py-4 rounded-full hover:border-white/60 hover:text-white transition-all duration-300 text-base">
+              Learn More
+            </Link>
           </div>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10" style={{ animation: "fadeIn 1s ease 1.2s both" }}>
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10" style={{ animation: "fadeIn 1s ease 1.2s both" }}>
           <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/30 to-transparent" style={{ animation: "pulse 2s ease infinite" }} />
         </div>
       </section>
-
-      <Script
-        src="//www.instagram.com/embed.js"
-        strategy="lazyOnload"
-        onLoad={() => window.instgrm?.Embeds?.process()}
-      />
 
       {/* ── STATS ── */}
       <section className="bg-[#1B3464]">
