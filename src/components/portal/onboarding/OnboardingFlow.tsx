@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
-import { ArrowRight, Sun, Moon, PanelLeft, AlignTop, Sparkles, Check } from "lucide-react";
+import { ArrowRight, Sun, Moon, PanelLeft, PanelTop, Sparkles, Check } from "lucide-react";
 
 interface Props { profile: Profile | null }
 
@@ -223,7 +223,7 @@ export default function OnboardingFlow({ profile }: Props) {
               <div className="grid grid-cols-2 gap-4 mb-8">
                 {([
                   ["sidebar", PanelLeft, "Sidebar", "Left rail navigation"],
-                  ["topnav", AlignTop, "Top Bar", "Navigation across the top"],
+                  ["topnav", PanelTop, "Top Bar", "Navigation across the top"],
                 ] as const).map(([val, Icon, label, desc]) => (
                   <button key={val} onClick={() => setNavStyle(val)}
                     className="relative p-6 rounded-2xl border-2 transition-all duration-200 text-left"
