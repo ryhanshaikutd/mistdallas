@@ -165,10 +165,10 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
       {/* ── QUALIFIERS BANNER ── */}
       {hasQualifiers && !bannerDismissed && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 px-4 pointer-events-none"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-2rem)] max-w-xl"
           style={{ animation: "slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.8s both" }}
         >
-          <div className="w-full max-w-xl pointer-events-auto relative">
+          <div className="relative">
           {/* Glow backdrop */}
           <div className="absolute inset-0 rounded-3xl blur-2xl opacity-40 pointer-events-none"
             style={{ background: "radial-gradient(ellipse at center, #7ADBB8 0%, #1B3464 60%)" }} />
@@ -579,8 +579,8 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
           }
         }
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(16px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
+          from { opacity: 0; transform: translate(-50%, 20px); }
+          to   { opacity: 1; transform: translate(-50%, 0); }
         }
         @keyframes borderPulse {
           0%, 100% { border-color: rgba(122,219,184,0.4); box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(122,219,184,0.08) inset; }
