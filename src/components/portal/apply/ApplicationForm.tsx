@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Position, Profile } from "@/lib/types";
 import { TEAM_LABELS, TIME_COMMITMENT_OPTIONS } from "@/lib/constants";
-import { CheckCircle2, AlertCircle, Lock, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { CheckCircle2, Lock, ChevronDown, ChevronUp, Star, ArrowRight } from "lucide-react";
 
 interface Props {
   profile: Profile | null;
@@ -17,37 +17,39 @@ interface Props {
 }
 
 const PHASE_ORDER = ["FOUNDATIONS", "BUILD", "STABILIZATION", "EXECUTION"];
-const PHASE_COLORS: Record<string, string> = {
-  FOUNDATIONS: "bg-[#EEF2F9] text-[#1B3464]",
-  BUILD: "bg-blue-50 text-[#2E7BC4]",
-  STABILIZATION: "bg-green-50 text-[#1A6B3C]",
-  EXECUTION: "bg-teal-50 text-[#2EA87A]",
+const PHASE_COLORS: Record<string, { bg: string; text: string }> = {
+  FOUNDATIONS: { bg: "#1B346420", text: "#1B3464" },
+  BUILD: { bg: "#2E7BC420", text: "#2E7BC4" },
+  STABILIZATION: { bg: "#1A6B3C20", text: "#1A6B3C" },
+  EXECUTION: { bg: "#2EA87A20", text: "#2EA87A" },
 };
 
 const COMMITMENTS = [
-  { key: "understands_not_guaranteed", label: "I understand that this is an application and not a guarantee." },
-  { key: "understands_volunteering", label: "I understand that I am volunteering my time and efforts." },
-  { key: "doing_for_allah", label: "I am doing this for the sake of Allah ﷻ and not for clout or bragging rights." },
-  { key: "will_be_professional", label: "I will leave outside drama at home and treat MIST with professionalism and ihsan." },
-  { key: "understands_confidentiality", label: "I understand that MIST work is confidential — not even with my parents, siblings, besties, cousins, or past MIST board members." },
+  { key: "understands_not_guaranteed", label: "I understand this is an application, not a guarantee." },
+  { key: "understands_volunteering", label: "I understand I am volunteering my time and efforts." },
+  { key: "doing_for_allah", label: "I am doing this for the sake of Allah ﷻ — not for clout." },
+  { key: "will_be_professional", label: "I will leave outside drama at home and show up with ihsan." },
+  { key: "understands_confidentiality", label: "MIST work is confidential — not even with family or past board members." },
   { key: "will_attend_meetings", label: "If selected, I will attend all required meetings." },
   { key: "willing_to_drive", label: "If selected, I am willing to drive for meetings." },
 ];
 
+const inputStyle = {
+  background: "var(--p-card)",
+  borderColor: "var(--p-border)",
+  color: "var(--p-text)",
+};
+
 export default function ApplicationForm({ profile, positions, cycle, existingApplication, isInternal }: Props) {
   const router = useRouter();
   const supabase = createClient();
-  const [step, setStep] = useState(0); // 0 = commitments, 1 = about you, 2 = position ranking, 3 = essay questions
+  const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
   const [commitments, setCommitments] = useState<Record<string, boolean>>({
-    understands_not_guaranteed: false,
-    understands_volunteering: false,
-    doing_for_allah: false,
-    will_be_professional: false,
-    understands_confidentiality: false,
-    will_attend_meetings: false,
-    willing_to_drive: false,
+    understands_not_guaranteed: false, understands_volunteering: false,
+    doing_for_allah: false, will_be_professional: false,
+    understands_confidentiality: false, will_attend_meetings: false, willing_to_drive: false,
   });
 
   const [form, setForm] = useState({
@@ -70,474 +72,352 @@ export default function ApplicationForm({ profile, positions, cycle, existingApp
   const rankedPositions = rankings.filter(Boolean);
 
   function setRank(rank: number, positionId: string) {
-    setRankings((prev) => {
+    setRankings(prev => {
       const next = [...prev];
-      // Remove this position from other slots
-      for (let i = 0; i < 3; i++) {
-        if (next[i] === positionId && i !== rank) next[i] = "";
-      }
+      for (let i = 0; i < 3; i++) { if (next[i] === positionId && i !== rank) next[i] = ""; }
       next[rank] = positionId;
       return next;
     });
   }
 
-  // Group positions by team
   const byTeam = positions.reduce<Record<string, Position[]>>((acc, p) => {
     acc[p.team] = acc[p.team] ?? [];
     acc[p.team].push(p);
     return acc;
   }, {});
 
-  const steps = [
-    { label: "Commitments", icon: "📋" },
-    { label: "About You", icon: "👤" },
-    { label: "Positions", icon: "⭐" },
-    { label: "Essays", icon: "✍️" },
+  const STEPS = [
+    { label: "Commitments", sub: "What you're agreeing to" },
+    { label: "About You", sub: "Who you are" },
+    { label: "Positions", sub: "What you want" },
+    { label: "Essays", sub: "How you think" },
   ];
 
   async function handleSubmit() {
-    if (rankedPositions.length === 0) {
-      toast.error("Please rank at least one position.");
-      return;
-    }
+    if (rankedPositions.length === 0) { toast.error("Please rank at least one position."); return; }
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !cycle) throw new Error("Not authenticated or no active cycle");
-
-      const appPayload = {
-        cycle_id: cycle.id,
-        applicant_id: user.id,
-        applicant_email: user.email!,
-        applicant_name: form.full_name,
-        gender: form.gender,
-        still_in_school: form.still_in_school === "yes",
-        is_internal: isInternal,
+      const { data: app, error: appErr } = await supabase.from("applications").insert({
+        cycle_id: cycle.id, applicant_id: user.id, applicant_email: user.email!,
+        applicant_name: form.full_name, gender: form.gender,
+        still_in_school: form.still_in_school === "yes", is_internal: isInternal,
         current_position_id: isInternal && form.current_position_id ? form.current_position_id : null,
         wants_position_change: isInternal ? form.wants_position_change === "change" : null,
         expected_time_commitment: form.expected_time_commitment,
-        one_change_essay: form.one_change_essay,
-        fell_short_essay: form.fell_short_essay,
+        one_change_essay: form.one_change_essay, fell_short_essay: form.fell_short_essay,
         why_mist: !isInternal ? form.why_mist : null,
         relevant_experience: !isInternal ? form.relevant_experience : null,
         ...commitments,
-      };
-
-      const { data: app, error: appErr } = await supabase
-        .from("applications")
-        .insert(appPayload)
-        .select()
-        .single();
-
+      }).select().single();
       if (appErr) throw appErr;
-
       const rankPayload = rankings
         .map((posId, idx) => posId ? { application_id: app.id, position_id: posId, rank: idx + 1 } : null)
         .filter((x): x is { application_id: string; position_id: string; rank: number } => x !== null);
-
       const { error: rankErr } = await supabase.from("application_rankings").insert(rankPayload);
       if (rankErr) throw rankErr;
-
       toast.success("Application submitted! You'll hear back soon, inshallah. 🤲");
       router.push("/portal");
     } catch (err: unknown) {
-      toast.error((err as Error).message ?? "Something went wrong. Please try again.");
+      toast.error((err as Error).message ?? "Something went wrong.");
     } finally {
       setSubmitting(false);
     }
   }
 
-  if (!cycle) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <Lock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#2D2F3A] mb-2">Recruitment is closed</h2>
-          <p className="text-gray-500">Applications aren&apos;t open right now. Check back soon!</p>
-        </div>
-      </div>
-    );
-  }
+  const cardStyle = { background: "var(--p-card)", borderColor: "var(--p-border)" };
 
-  if (existingApplication) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#2D2F3A] mb-2">Application submitted!</h2>
-          <p className="text-gray-500 mb-4">
-            Your application is currently{" "}
-            <span className="font-semibold text-[#2D2F3A]">
-              {existingApplication.status.replace(/_/g, " ")}
-            </span>
-            .
-          </p>
-          <p className="text-gray-400 text-sm">You&apos;ll be notified of any updates here and by email.</p>
-        </div>
+  if (!cycle) return (
+    <div className="max-w-lg mx-auto py-20 text-center">
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "var(--p-card)" }}>
+        <Lock className="w-7 h-7" style={{ color: "var(--p-muted)" }} />
       </div>
-    );
-  }
+      <h2 className="text-2xl font-extrabold mb-2" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>Recruitment is closed</h2>
+      <p style={{ color: "var(--p-muted)" }}>Applications aren&apos;t open right now. Check back soon!</p>
+    </div>
+  );
 
-  if (cycle.type === "internal" && !isInternal) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <Lock className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#2D2F3A] mb-2">Internal recruitment only</h2>
-          <p className="text-gray-500">
-            Applications are currently open to current board members only. External recruitment will open soon.
-          </p>
-        </div>
+  if (existingApplication) return (
+    <div className="max-w-lg mx-auto py-20 text-center">
+      <div className="w-16 h-16 rounded-full bg-[#2EA87A] flex items-center justify-center mx-auto mb-5">
+        <CheckCircle2 className="w-8 h-8 text-white" />
       </div>
-    );
-  }
+      <h2 className="text-2xl font-extrabold mb-2" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>You&apos;re in the queue.</h2>
+      <p style={{ color: "var(--p-muted)" }}>Status: <span className="font-semibold capitalize" style={{ color: "var(--p-text)" }}>{existingApplication.status.replace(/_/g, " ")}</span></p>
+      <p className="text-sm mt-2" style={{ color: "var(--p-muted)" }}>You&apos;ll be notified of updates here and by email.</p>
+    </div>
+  );
+
+  if (cycle.type === "internal" && !isInternal) return (
+    <div className="max-w-lg mx-auto py-20 text-center">
+      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "var(--p-card)" }}>
+        <Lock className="w-7 h-7" style={{ color: "#F59E0B" }} />
+      </div>
+      <h2 className="text-2xl font-extrabold mb-2" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>Internal only right now.</h2>
+      <p style={{ color: "var(--p-muted)" }}>External recruitment opens soon. Hang tight.</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6" style={{ animation: "fadeInUp 0.4s ease both" }}>
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-[#2D2F3A]">
+        <h2 className="text-3xl font-extrabold" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>
           {cycle.year} Board Application
         </h2>
-        <p className="text-gray-500 mt-1">
-          {isInternal ? "Internal recruitment — returning member" : "External recruitment — open to all"}
+        <p className="mt-1 text-sm" style={{ color: "var(--p-muted)" }}>
+          {isInternal ? "Internal recruitment · returning member" : "External recruitment · open to all"}
         </p>
       </div>
 
-      {/* Step progress */}
-      <div className="flex items-center gap-2">
-        {steps.map((s, i) => (
-          <div key={s.label} className="flex items-center gap-2 flex-1">
-            <button
-              onClick={() => i < step && setStep(i)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                i === step
-                  ? "bg-[#1B3464] text-white"
-                  : i < step
-                  ? "bg-green-50 text-green-700 cursor-pointer hover:bg-green-100"
-                  : "bg-gray-100 text-gray-400 cursor-default"
-              }`}
-            >
-              <span>{s.icon}</span>
-              <span className="hidden sm:block">{s.label}</span>
-            </button>
-            {i < steps.length - 1 && (
-              <div className={`flex-1 h-px ${i < step ? "bg-green-300" : "bg-gray-200"}`} />
-            )}
-          </div>
+      {/* Step bar */}
+      <div className="flex gap-2">
+        {STEPS.map((s, i) => (
+          <button key={i} onClick={() => i < step && setStep(i)}
+            className="flex-1 py-2.5 px-3 rounded-xl text-left transition-all duration-200 border"
+            style={{
+              background: i === step ? "#1B3464" : i < step ? "#2EA87A15" : "var(--p-card)",
+              borderColor: i === step ? "#1B3464" : i < step ? "#2EA87A40" : "var(--p-border)",
+              cursor: i < step ? "pointer" : "default",
+            }}>
+            <div className="text-xs font-bold" style={{ color: i === step ? "#fff" : i < step ? "#2EA87A" : "var(--p-muted)" }}>
+              {i < step ? "✓" : `0${i + 1}`}
+            </div>
+            <div className="text-xs mt-0.5 hidden sm:block truncate" style={{ color: i === step ? "rgba(255,255,255,0.7)" : "var(--p-muted)" }}>
+              {s.label}
+            </div>
+          </button>
         ))}
       </div>
 
       {/* ── STEP 0: Commitments ── */}
       {step === 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
-          <div className="flex items-start gap-3 p-4 bg-[#EEF2F9] rounded-xl mb-6">
-            <AlertCircle className="w-5 h-5 text-[#1B3464] mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-[#1B3464]">
-              Before applying, please read and acknowledge each commitment below.
-              These are the expectations for every board member.
+        <div className="rounded-2xl border p-6 space-y-3" style={cardStyle}>
+          <div className="rounded-xl p-4 mb-2" style={{ background: "#1B346415", borderLeft: "3px solid #1B3464" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--p-text)" }}>
+              Read each commitment carefully. All boxes must be checked to continue.
             </p>
           </div>
-          {COMMITMENTS.map((c) => (
-            <label
-              key={c.key}
-              className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                commitments[c.key]
-                  ? "border-green-200 bg-green-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={commitments[c.key]}
-                onChange={(e) => setCommitments((prev) => ({ ...prev, [c.key]: e.target.checked }))}
-                className="mt-0.5 w-4 h-4 accent-[#1A6B3C]"
-              />
-              <span className="text-sm text-gray-700">{c.label}</span>
-              {commitments[c.key] && <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto flex-shrink-0" />}
+          {COMMITMENTS.map(c => (
+            <label key={c.key} className="flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all duration-150"
+              style={{
+                borderColor: commitments[c.key] ? "#2EA87A50" : "var(--p-border)",
+                background: commitments[c.key] ? "#2EA87A10" : "var(--p-card-hover)",
+              }}>
+              <input type="checkbox" checked={commitments[c.key]}
+                onChange={e => setCommitments(p => ({ ...p, [c.key]: e.target.checked }))}
+                className="mt-0.5 w-4 h-4 accent-[#1A6B3C]" />
+              <span className="text-sm flex-1" style={{ color: "var(--p-text-secondary)" }}>{c.label}</span>
+              {commitments[c.key] && <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-[#2EA87A]" />}
             </label>
           ))}
-          <button
-            onClick={() => setStep(1)}
-            disabled={!allCommitmentsChecked}
-            className="w-full mt-4 bg-[#1B3464] text-white font-semibold py-3 rounded-xl hover:bg-[#2E7BC4] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            I agree — continue
+          <button onClick={() => setStep(1)} disabled={!allCommitmentsChecked}
+            className="w-full mt-2 text-white font-bold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+            style={{ background: allCommitmentsChecked ? "#1B3464" : "var(--p-border)", cursor: allCommitmentsChecked ? "pointer" : "not-allowed" }}>
+            I agree — continue <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* ── STEP 1: About You ── */}
       {step === 1 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+        <div className="rounded-2xl border p-6 space-y-5" style={cardStyle}>
           <div>
-            <label className="block text-sm font-semibold text-[#2D2F3A] mb-2">My name is</label>
-            <input
-              type="text"
-              value={form.full_name}
-              onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))}
-              placeholder="Full name"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2E7BC4] focus:ring-2 focus:ring-[#2E7BC4]/10"
-            />
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--p-muted)" }}>Full Name</label>
+            <input type="text" value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))}
+              placeholder="Your full name" className="w-full border rounded-xl px-4 py-3 text-sm outline-none transition-all"
+              style={inputStyle} onFocus={e => (e.target as HTMLInputElement).style.borderColor = "#2E7BC4"}
+              onBlur={e => (e.target as HTMLInputElement).style.borderColor = "var(--p-border)"} />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#2D2F3A] mb-2">I am</label>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--p-muted)" }}>I am a</label>
             <div className="grid grid-cols-2 gap-3">
-              {["brother", "sister"].map((g) => (
-                <label
-                  key={g}
-                  className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer font-medium text-sm capitalize transition-all ${
-                    form.gender === g
-                      ? "border-[#1B3464] bg-[#EEF2F9] text-[#1B3464]"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="gender"
-                    value={g}
-                    checked={form.gender === g}
-                    onChange={() => setForm((p) => ({ ...p, gender: g as "brother" | "sister" }))}
-                    className="sr-only"
-                  />
-                  A {g}
-                </label>
+              {(["brother", "sister"] as const).map(g => (
+                <button key={g} onClick={() => setForm(p => ({ ...p, gender: g }))}
+                  className="py-3 rounded-xl border font-semibold text-sm capitalize transition-all duration-150"
+                  style={{
+                    borderColor: form.gender === g ? "#1B3464" : "var(--p-border)",
+                    background: form.gender === g ? "#1B346415" : "var(--p-card-hover)",
+                    color: form.gender === g ? "#1B3464" : "var(--p-muted)",
+                  }}>A {g}</button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#2D2F3A] mb-2">Are you still in school?</label>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--p-muted)" }}>Still in school?</label>
             <div className="grid grid-cols-2 gap-3">
-              {["yes", "no"].map((v) => (
-                <label
-                  key={v}
-                  className={`flex items-center justify-center p-3 rounded-xl border cursor-pointer font-medium text-sm capitalize transition-all ${
-                    form.still_in_school === v
-                      ? "border-[#1B3464] bg-[#EEF2F9] text-[#1B3464]"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="still_in_school"
-                    value={v}
-                    checked={form.still_in_school === v}
-                    onChange={() => setForm((p) => ({ ...p, still_in_school: v as "yes" | "no" }))}
-                    className="sr-only"
-                  />
-                  {v === "yes" ? "Yes" : "No"}
-                </label>
+              {(["yes", "no"] as const).map(v => (
+                <button key={v} onClick={() => setForm(p => ({ ...p, still_in_school: v }))}
+                  className="py-3 rounded-xl border font-semibold text-sm transition-all duration-150"
+                  style={{
+                    borderColor: form.still_in_school === v ? "#1B3464" : "var(--p-border)",
+                    background: form.still_in_school === v ? "#1B346415" : "var(--p-card-hover)",
+                    color: form.still_in_school === v ? "#1B3464" : "var(--p-muted)",
+                  }}>{v === "yes" ? "Yes" : "No"}</button>
               ))}
             </div>
           </div>
 
           {isInternal && (
             <div>
-              <label className="block text-sm font-semibold text-[#2D2F3A] mb-2">Position preference</label>
-              <div className="grid grid-cols-1 gap-3">
-                {["stay", "change"].map((v) => (
-                  <label
-                    key={v}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer text-sm transition-all ${
-                      form.wants_position_change === v
-                        ? "border-[#1B3464] bg-[#EEF2F9] text-[#1B3464]"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="pos_change"
-                      value={v}
-                      checked={form.wants_position_change === v}
-                      onChange={() => setForm((p) => ({ ...p, wants_position_change: v as "stay" | "change" }))}
-                      className="sr-only"
-                    />
-                    {v === "stay" ? "I like where I am!" : "I want to explore other options"}
-                  </label>
+              <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--p-muted)" }}>Position preference</label>
+              <div className="space-y-2">
+                {(["stay", "change"] as const).map(v => (
+                  <button key={v} onClick={() => setForm(p => ({ ...p, wants_position_change: v }))}
+                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border text-sm font-medium text-left transition-all duration-150"
+                    style={{
+                      borderColor: form.wants_position_change === v ? "#1B3464" : "var(--p-border)",
+                      background: form.wants_position_change === v ? "#1B346415" : "var(--p-card-hover)",
+                      color: form.wants_position_change === v ? "#1B3464" : "var(--p-text-secondary)",
+                    }}>
+                    {v === "stay" ? "I like where I am — keep my role" : "I want to explore other positions"}
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-[#2D2F3A] mb-2">
-              What are you expecting the time commitment to be?
-            </label>
-            <select
-              value={form.expected_time_commitment}
-              onChange={(e) => setForm((p) => ({ ...p, expected_time_commitment: e.target.value }))}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2E7BC4] bg-white"
-            >
+            <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--p-muted)" }}>Expected time commitment</label>
+            <select value={form.expected_time_commitment} onChange={e => setForm(p => ({ ...p, expected_time_commitment: e.target.value }))}
+              className="w-full border rounded-xl px-4 py-3 text-sm outline-none"
+              style={{ ...inputStyle, appearance: "none" }}>
               <option value="">Select one…</option>
-              {TIME_COMMITMENT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
+              {TIME_COMMITMENT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
 
           {!isInternal && (
             <>
               <div>
-                <label className="block text-sm font-semibold text-[#2D2F3A] mb-2">Why do you want to join MIST Dallas?</label>
-                <textarea
-                  value={form.why_mist}
-                  onChange={(e) => setForm((p) => ({ ...p, why_mist: e.target.value }))}
-                  rows={3}
-                  placeholder="Tell us what draws you to MIST and this work…"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2E7BC4] focus:ring-2 focus:ring-[#2E7BC4]/10 resize-none"
-                />
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--p-muted)" }}>Why MIST Dallas?</label>
+                <textarea value={form.why_mist} onChange={e => setForm(p => ({ ...p, why_mist: e.target.value }))}
+                  rows={3} placeholder="What draws you to this work?" className="w-full border rounded-xl px-4 py-3 text-sm outline-none resize-none"
+                  style={inputStyle} />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-[#2D2F3A] mb-2">Relevant experience or background</label>
-                <textarea
-                  value={form.relevant_experience}
-                  onChange={(e) => setForm((p) => ({ ...p, relevant_experience: e.target.value }))}
-                  rows={3}
-                  placeholder="Any leadership, event planning, volunteering, or related experience…"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2E7BC4] focus:ring-2 focus:ring-[#2E7BC4]/10 resize-none"
-                />
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--p-muted)" }}>Relevant experience</label>
+                <textarea value={form.relevant_experience} onChange={e => setForm(p => ({ ...p, relevant_experience: e.target.value }))}
+                  rows={3} placeholder="Leadership, events, volunteering…" className="w-full border rounded-xl px-4 py-3 text-sm outline-none resize-none"
+                  style={inputStyle} />
               </div>
             </>
           )}
 
-          <div className="flex gap-3">
-            <button onClick={() => setStep(0)} className="px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
-              Back
-            </button>
-            <button
-              onClick={() => setStep(2)}
+          <div className="flex gap-3 pt-2">
+            <button onClick={() => setStep(0)} className="px-5 py-3 rounded-xl border text-sm font-medium transition-colors"
+              style={{ borderColor: "var(--p-border)", color: "var(--p-muted)", background: "var(--p-card-hover)" }}>Back</button>
+            <button onClick={() => setStep(2)}
               disabled={!form.full_name || !form.gender || !form.still_in_school || !form.expected_time_commitment || (isInternal && !form.wants_position_change)}
-              className="flex-1 bg-[#1B3464] text-white font-semibold py-3 rounded-xl hover:bg-[#2E7BC4] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Next: Position Ranking
+              className="flex-1 text-white font-bold py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+              style={{ background: "#1B3464" }}>
+              Next: Positions <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       )}
 
-      {/* ── STEP 2: Position Ranking ── */}
+      {/* ── STEP 2: Positions ── */}
       {step === 2 && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <p className="text-sm text-gray-600 mb-5">
-              Rank up to <strong>3 positions</strong> in order of preference. Click a role to assign it to a rank slot.
-            </p>
-
-            {/* Rank slots */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {[0, 1, 2].map((i) => {
-                const pos = positions.find((p) => p.id === rankings[i]);
-                return (
-                  <div key={i} className={`relative p-4 rounded-xl border-2 min-h-[80px] ${pos ? "border-[#1B3464] bg-[#EEF2F9]" : "border-dashed border-gray-200 bg-gray-50"}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${pos ? "bg-[#1B3464]" : "bg-gray-300"}`}>
-                        {i + 1}
-                      </div>
-                      <span className="text-xs text-gray-400 font-medium">
-                        {i === 0 ? "1st choice" : i === 1 ? "2nd choice" : "3rd choice"}
-                      </span>
-                    </div>
-                    {pos ? (
-                      <>
-                        <p className="text-xs font-semibold text-[#1B3464] leading-tight">{pos.title}</p>
-                        <span className={`mt-1 inline-block text-xs px-1.5 py-0.5 rounded ${PHASE_COLORS[pos.phase]}`}>
-                          {pos.phase}
-                        </span>
-                        <button
-                          onClick={() => setRank(i, "")}
-                          className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#1B3464]/20 hover:bg-red-100 text-[#1B3464] hover:text-red-600 flex items-center justify-center text-xs transition-colors"
-                        >
-                          ×
-                        </button>
-                      </>
-                    ) : (
-                      <p className="text-xs text-gray-400">Select below</p>
-                    )}
+          {/* Rank slots */}
+          <div className="grid grid-cols-3 gap-3">
+            {[0, 1, 2].map(i => {
+              const pos = positions.find(p => p.id === rankings[i]);
+              return (
+                <div key={i} className="relative p-4 rounded-2xl border-2 min-h-[90px] transition-all"
+                  style={{
+                    borderColor: pos ? "#1B3464" : "var(--p-border)",
+                    borderStyle: pos ? "solid" : "dashed",
+                    background: pos ? "#1B346410" : "var(--p-card)",
+                  }}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                      style={{ background: pos ? "#1B3464" : "var(--p-muted)" }}>{i + 1}</div>
+                    <span className="text-xs" style={{ color: "var(--p-muted)" }}>{["1st", "2nd", "3rd"][i]} choice</span>
                   </div>
-                );
-              })}
-            </div>
+                  {pos ? (
+                    <>
+                      <p className="text-xs font-bold leading-tight" style={{ color: "#1B3464" }}>{pos.title}</p>
+                      <span className="mt-1 inline-block text-xs px-1.5 py-0.5 rounded-full"
+                        style={{ background: PHASE_COLORS[pos.phase]?.bg, color: PHASE_COLORS[pos.phase]?.text }}>
+                        {pos.phase}
+                      </span>
+                      <button onClick={() => setRank(i, "")}
+                        className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                        style={{ background: "var(--p-border)", color: "var(--p-muted)" }}>×</button>
+                    </>
+                  ) : (
+                    <p className="text-xs" style={{ color: "var(--p-muted)" }}>Select below</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
-            {/* Position browser by team */}
-            <div className="space-y-2">
-              {Object.entries(byTeam)
-                .sort(([a], [b]) => a.localeCompare(b))
-                .map(([team, teamPositions]) => {
-                  const open = expandedTeam === team;
-                  return (
-                    <div key={team} className="border border-gray-100 rounded-xl overflow-hidden">
-                      <button
-                        onClick={() => setExpandedTeam(open ? null : team)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-                      >
-                        <span className="font-semibold text-sm text-[#2D2F3A]">
-                          {TEAM_LABELS[team as keyof typeof TEAM_LABELS]}
-                        </span>
-                        {open ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
-                      </button>
-                      {open && (
-                        <div className="divide-y divide-gray-50">
-                          {teamPositions
-                            .sort((a, b) => PHASE_ORDER.indexOf(a.phase) - PHASE_ORDER.indexOf(b.phase))
-                            .map((pos) => {
-                              const assignedRank = rankings.indexOf(pos.id);
-                              const isRanked = assignedRank !== -1;
-                              const nextOpen = rankings.findIndex((r) => !r);
-                              return (
-                                <div key={pos.id} className="flex items-center justify-between px-4 py-3">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium text-[#2D2F3A] truncate">{pos.title}</span>
-                                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${PHASE_COLORS[pos.phase]}`}>
-                                        {pos.phase}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  {isRanked ? (
-                                    <div className="flex items-center gap-2 ml-3">
-                                      <div className="flex items-center gap-1 px-3 py-1.5 bg-[#1B3464] text-white rounded-lg text-xs font-semibold">
-                                        <Star className="w-3 h-3 fill-current" />
-                                        #{assignedRank + 1}
-                                      </div>
-                                      <button
-                                        onClick={() => setRank(assignedRank, "")}
-                                        className="text-gray-400 hover:text-red-500 text-lg leading-none transition-colors"
-                                      >
-                                        ×
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <button
-                                      onClick={() => nextOpen !== -1 && setRank(nextOpen, pos.id)}
-                                      disabled={nextOpen === -1}
-                                      className="ml-3 px-3 py-1.5 border border-gray-200 text-gray-500 rounded-lg text-xs hover:border-[#1B3464] hover:text-[#1B3464] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                    >
-                                      {nextOpen === -1 ? "Full" : `Rank ${nextOpen + 1}`}
-                                    </button>
-                                  )}
+          {/* Team browser */}
+          <div className="rounded-2xl border overflow-hidden" style={cardStyle}>
+            {Object.entries(byTeam).sort(([a], [b]) => a.localeCompare(b)).map(([team, teamPositions]) => {
+              const open = expandedTeam === team;
+              return (
+                <div key={team} className="border-b last:border-b-0" style={{ borderColor: "var(--p-border)" }}>
+                  <button onClick={() => setExpandedTeam(open ? null : team)}
+                    className="w-full flex items-center justify-between px-5 py-3.5 transition-colors"
+                    style={{ background: open ? "var(--p-card-hover)" : "transparent" }}
+                    onMouseEnter={e => !open && ((e.currentTarget as HTMLElement).style.background = "var(--p-card-hover)")}
+                    onMouseLeave={e => !open && ((e.currentTarget as HTMLElement).style.background = "transparent")}>
+                    <span className="font-bold text-sm" style={{ color: "var(--p-text)" }}>{TEAM_LABELS[team as keyof typeof TEAM_LABELS]}</span>
+                    {open ? <ChevronUp className="w-4 h-4" style={{ color: "var(--p-muted)" }} /> : <ChevronDown className="w-4 h-4" style={{ color: "var(--p-muted)" }} />}
+                  </button>
+                  {open && (
+                    <div className="divide-y" style={{ borderColor: "var(--p-border)" }}>
+                      {teamPositions.sort((a, b) => PHASE_ORDER.indexOf(a.phase) - PHASE_ORDER.indexOf(b.phase)).map(pos => {
+                        const assignedRank = rankings.indexOf(pos.id);
+                        const isRanked = assignedRank !== -1;
+                        const nextOpen = rankings.findIndex(r => !r);
+                        return (
+                          <div key={pos.id} className="flex items-center px-5 py-3" style={{ borderColor: "var(--p-border)" }}>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm font-medium truncate block" style={{ color: "var(--p-text)" }}>{pos.title}</span>
+                              <span className="text-xs px-1.5 py-0.5 rounded-full inline-block mt-0.5"
+                                style={{ background: PHASE_COLORS[pos.phase]?.bg, color: PHASE_COLORS[pos.phase]?.text }}>
+                                {pos.phase}
+                              </span>
+                            </div>
+                            {isRanked ? (
+                              <div className="flex items-center gap-2 ml-3">
+                                <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-white" style={{ background: "#1B3464" }}>
+                                  <Star className="w-3 h-3 fill-current" /> #{assignedRank + 1}
                                 </div>
-                              );
-                            })}
-                        </div>
-                      )}
+                                <button onClick={() => setRank(assignedRank, "")} className="text-lg leading-none transition-colors" style={{ color: "var(--p-muted)" }}>×</button>
+                              </div>
+                            ) : (
+                              <button onClick={() => nextOpen !== -1 && setRank(nextOpen, pos.id)} disabled={nextOpen === -1}
+                                className="ml-3 px-3 py-1.5 border rounded-lg text-xs font-medium transition-all"
+                                style={{ borderColor: "var(--p-border)", color: "var(--p-muted)", background: "var(--p-card-hover)" }}>
+                                {nextOpen === -1 ? "Full" : `Rank ${nextOpen + 1}`}
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-            </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
-              Back
-            </button>
-            <button
-              onClick={() => setStep(3)}
-              disabled={rankedPositions.length === 0}
-              className="flex-1 bg-[#1B3464] text-white font-semibold py-3 rounded-xl hover:bg-[#2E7BC4] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Next: Essay Questions
+            <button onClick={() => setStep(1)} className="px-5 py-3 rounded-xl border text-sm font-medium"
+              style={{ borderColor: "var(--p-border)", color: "var(--p-muted)", background: "var(--p-card-hover)" }}>Back</button>
+            <button onClick={() => setStep(3)} disabled={rankedPositions.length === 0}
+              className="flex-1 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+              style={{ background: "#1B3464", opacity: rankedPositions.length === 0 ? 0.4 : 1 }}>
+              Next: Essays <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -545,62 +425,48 @@ export default function ApplicationForm({ profile, positions, cycle, existingApp
 
       {/* ── STEP 3: Essays ── */}
       {step === 3 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+        <div className="rounded-2xl border p-6 space-y-6" style={cardStyle}>
           <div>
-            <label className="block text-sm font-bold text-[#2D2F3A] mb-1">
-              What is ONE change you would implement in your team next year, and how would you execute it step-by-step?
-            </label>
-            <p className="text-xs text-gray-400 mb-3">Be specific. What's the problem, what's your solution, and how do you carry it out?</p>
-            <textarea
-              value={form.one_change_essay}
-              onChange={(e) => setForm((p) => ({ ...p, one_change_essay: e.target.value }))}
-              rows={6}
-              placeholder="Describe the change and your step-by-step plan…"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2E7BC4] focus:ring-2 focus:ring-[#2E7BC4]/10 resize-none"
-            />
-            <div className="text-right text-xs text-gray-400 mt-1">{form.one_change_essay.length} characters</div>
+            <label className="block text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--p-muted)" }}>Essay 1</label>
+            <p className="font-bold mb-1" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>
+              What is ONE change you would implement in your team next year, and how would you execute it?
+            </p>
+            <p className="text-xs mb-3" style={{ color: "var(--p-muted)" }}>Be specific. Problem → solution → steps.</p>
+            <textarea value={form.one_change_essay} onChange={e => setForm(p => ({ ...p, one_change_essay: e.target.value }))}
+              rows={6} placeholder="Describe the change and your step-by-step plan…" className="w-full border rounded-xl px-4 py-3 text-sm outline-none resize-none"
+              style={inputStyle} />
+            <div className="text-right text-xs mt-1" style={{ color: "var(--p-muted)" }}>{form.one_change_essay.length} chars</div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-[#2D2F3A] mb-1">
-              Describe a time this year where you fell short in your role. What happened, and what would you do differently?
-            </label>
-            <p className="text-xs text-gray-400 mb-3">
-              {isInternal
-                ? "Reflect honestly on your experience this past year."
-                : "This can be from any leadership, volunteer, or academic context."}
+            <label className="block text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--p-muted)" }}>Essay 2</label>
+            <p className="font-bold mb-1" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>
+              Describe a time you fell short in your role. What happened, and what would you do differently?
             </p>
-            <textarea
-              value={form.fell_short_essay}
-              onChange={(e) => setForm((p) => ({ ...p, fell_short_essay: e.target.value }))}
-              rows={6}
-              placeholder="Be honest and reflective…"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#2E7BC4] focus:ring-2 focus:ring-[#2E7BC4]/10 resize-none"
-            />
-            <div className="text-right text-xs text-gray-400 mt-1">{form.fell_short_essay.length} characters</div>
+            <p className="text-xs mb-3" style={{ color: "var(--p-muted)" }}>
+              {isInternal ? "Reflect honestly on your experience this past year." : "From any leadership, volunteer, or academic context."}
+            </p>
+            <textarea value={form.fell_short_essay} onChange={e => setForm(p => ({ ...p, fell_short_essay: e.target.value }))}
+              rows={6} placeholder="Be honest and reflective…" className="w-full border rounded-xl px-4 py-3 text-sm outline-none resize-none"
+              style={inputStyle} />
+            <div className="text-right text-xs mt-1" style={{ color: "var(--p-muted)" }}>{form.fell_short_essay.length} chars</div>
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(2)} className="px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
-              Back
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting || !form.one_change_essay.trim() || !form.fell_short_essay.trim()}
-              className="flex-1 bg-[#1A6B3C] text-white font-semibold py-3 rounded-xl hover:bg-[#2EA87A] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Submitting…
-                </>
-              ) : (
-                "Submit Application 🤲"
-              )}
+            <button onClick={() => setStep(2)} className="px-5 py-3 rounded-xl border text-sm font-medium"
+              style={{ borderColor: "var(--p-border)", color: "var(--p-muted)", background: "var(--p-card-hover)" }}>Back</button>
+            <button onClick={handleSubmit} disabled={submitting || !form.one_change_essay.trim() || !form.fell_short_essay.trim()}
+              className="flex-1 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+              style={{ background: "#1A6B3C", opacity: (!form.one_change_essay.trim() || !form.fell_short_essay.trim()) ? 0.4 : 1 }}>
+              {submitting ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Submitting…</> : <>Submit Application 🤲</>}
             </button>
           </div>
         </div>
       )}
+
+      <style jsx global>{`
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 }

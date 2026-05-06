@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile, Position } from "@/lib/types";
@@ -43,14 +43,14 @@ const STATUS_OPTIONS = [
   { value: "offered_different_position", label: "Offer Different Position", icon: RefreshCw, color: "text-teal-600" },
 ];
 
-const STATUS_COLORS: Record<string, string> = {
-  submitted: "bg-blue-100 text-blue-700",
-  under_review: "bg-yellow-100 text-yellow-700",
-  interview_scheduled: "bg-purple-100 text-purple-700",
-  accepted: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
-  redirected_dream_team: "bg-orange-100 text-orange-700",
-  offered_different_position: "bg-teal-100 text-teal-700",
+const STATUS_STYLE: Record<string, React.CSSProperties> = {
+  submitted: { background: "#3B82F620", color: "#3B82F6" },
+  under_review: { background: "#F59E0B20", color: "#F59E0B" },
+  interview_scheduled: { background: "#8B5CF620", color: "#8B5CF6" },
+  accepted: { background: "#10B98120", color: "#10B981" },
+  rejected: { background: "#EF444420", color: "#EF4444" },
+  redirected_dream_team: { background: "#F9731620", color: "#F97316" },
+  offered_different_position: { background: "#14B8A620", color: "#14B8A6" },
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -148,14 +148,14 @@ export default function ReviewDashboard({ applications: initial, positions, prof
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: "Total", value: counts.total, color: "text-[#2D2F3A]" },
-          { label: "New", value: counts.submitted, color: "text-blue-600" },
-          { label: "In Review", value: counts.under_review, color: "text-yellow-600" },
-          { label: "Accepted", value: counts.accepted, color: "text-green-600" },
+          { label: "Total", value: counts.total, color: "var(--p-text)" },
+          { label: "New", value: counts.submitted, color: "#2563eb" },
+          { label: "In Review", value: counts.under_review, color: "#ca8a04" },
+          { label: "Accepted", value: counts.accepted, color: "var(--p-accent-green)" },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-4 text-center">
-            <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
-            <div className="text-xs text-gray-400 mt-1">{s.label}</div>
+          <div key={s.label} style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }} className="rounded-2xl border p-4 text-center">
+            <div style={{ color: s.color }} className="text-3xl font-bold">{s.value}</div>
+            <div style={{ color: "var(--p-muted)" }} className="text-xs mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -163,19 +163,21 @@ export default function ReviewDashboard({ applications: initial, positions, prof
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search style={{ color: "var(--p-muted)" }} className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
           <input
             type="text"
             placeholder="Search applicants…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-[#2E7BC4]"
+            style={{ background: "var(--p-card)", borderColor: "var(--p-border)", color: "var(--p-text)" }}
+            className="w-full pl-10 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none"
           />
         </div>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#2E7BC4]"
+          style={{ background: "var(--p-card)", borderColor: "var(--p-border)", color: "var(--p-text)" }}
+          className="border rounded-xl px-3 py-2.5 text-sm focus:outline-none"
         >
           <option value="all">All statuses</option>
           {Object.entries(STATUS_LABELS).map(([v, l]) => (
@@ -185,7 +187,8 @@ export default function ReviewDashboard({ applications: initial, positions, prof
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value)}
-          className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-[#2E7BC4]"
+          style={{ background: "var(--p-card)", borderColor: "var(--p-border)", color: "var(--p-text)" }}
+          className="border rounded-xl px-3 py-2.5 text-sm focus:outline-none"
         >
           <option value="all">All applicants</option>
           <option value="internal">Internal only</option>
@@ -196,7 +199,7 @@ export default function ReviewDashboard({ applications: initial, positions, prof
       {/* Application list */}
       <div className="space-y-3">
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-400">
+          <div style={{ background: "var(--p-card)", borderColor: "var(--p-border)", color: "var(--p-muted)" }} className="rounded-2xl border p-12 text-center">
             <Filter className="w-8 h-8 mx-auto mb-2 opacity-40" />
             No applications match your filters.
           </div>
@@ -208,26 +211,27 @@ export default function ReviewDashboard({ applications: initial, positions, prof
               .sort((a, b) => a.rank - b.rank);
 
             return (
-              <div key={app.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div key={app.id} style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }} className="rounded-2xl border overflow-hidden">
                 {/* Row header */}
                 <button
                   onClick={() => setExpanded(isExpanded ? null : app.id)}
-                  className="w-full flex items-center gap-4 p-5 text-left hover:bg-gray-50 transition-colors"
+                  style={{ color: "var(--p-text)" }}
+                  className="w-full flex items-center gap-4 p-5 text-left hover:opacity-90 transition-opacity"
                 >
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2E7BC4] to-[#2EA87A] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                     {app.applicant_name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-[#2D2F3A]">{app.applicant_name}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${app.is_internal ? "bg-[#EEF2F9] text-[#1B3464]" : "bg-gray-100 text-gray-500"}`}>
+                      <span style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }} className="font-semibold">{app.applicant_name}</span>
+                      <span style={app.is_internal ? { background: "#EEF2F9", color: "#1B3464" } : { background: "var(--p-card-hover)", color: "var(--p-text-secondary)" }} className="text-xs px-2 py-0.5 rounded-full">
                         {app.is_internal ? "Internal" : "External"}
                       </span>
-                      <span className="text-xs text-gray-400 capitalize">{app.gender}</span>
+                      <span style={{ color: "var(--p-muted)" }} className="text-xs capitalize">{app.gender}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                       {ranked.slice(0, 3).map((r) => (
-                        <span key={r.rank} className="text-xs text-gray-500">
+                        <span key={r.rank} style={{ color: "var(--p-text-secondary)" }} className="text-xs">
                           #{r.rank} {r.position?.title}
                         </span>
                       ))}
@@ -235,25 +239,25 @@ export default function ReviewDashboard({ applications: initial, positions, prof
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
                     {app.reviewer_notes.length > 0 && (
-                      <span className="flex items-center gap-1 text-xs text-gray-400">
+                      <span style={{ color: "var(--p-muted)" }} className="flex items-center gap-1 text-xs">
                         <MessageSquare className="w-3.5 h-3.5" />
                         {app.reviewer_notes.length}
                       </span>
                     )}
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${STATUS_COLORS[app.status] ?? "bg-gray-100 text-gray-600"}`}>
+                    <span className="text-xs font-medium px-2.5 py-1 rounded-full" style={STATUS_STYLE[app.status] ?? { background: "var(--p-card-hover)", color: "var(--p-muted)" }}>
                       {STATUS_LABELS[app.status] ?? app.status}
                     </span>
-                    {isExpanded ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                    {isExpanded ? <ChevronUp style={{ color: "var(--p-muted)" }} className="w-4 h-4" /> : <ChevronDown style={{ color: "var(--p-muted)" }} className="w-4 h-4" />}
                   </div>
                 </button>
 
                 {/* Expanded detail */}
                 {isExpanded && (
-                  <div className="border-t border-gray-100 p-5 space-y-6">
+                  <div style={{ borderColor: "var(--p-border)" }} className="border-t p-5 space-y-6">
                     {/* Position rankings */}
                     <div>
-                      <h4 className="text-sm font-bold text-[#2D2F3A] mb-3 flex items-center gap-2">
-                        <Star className="w-4 h-4 text-[#2E7BC4]" /> Position Rankings
+                      <h4 style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }} className="text-sm font-bold mb-3 flex items-center gap-2">
+                        <Star style={{ color: "var(--p-accent)" }} className="w-4 h-4" /> Position Rankings
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {ranked.map((r) => (
@@ -270,44 +274,44 @@ export default function ReviewDashboard({ applications: initial, positions, prof
 
                     {/* About */}
                     <div className="grid sm:grid-cols-3 gap-4 text-sm">
-                      <div className="bg-gray-50 rounded-xl p-3">
-                        <div className="text-xs text-gray-400 mb-1">Still in school</div>
-                        <div className="font-medium text-[#2D2F3A]">{app.still_in_school ? "Yes" : "No"}</div>
+                      <div style={{ background: "var(--p-card-hover)" }} className="rounded-xl p-3">
+                        <div style={{ color: "var(--p-muted)" }} className="text-xs mb-1">Still in school</div>
+                        <div style={{ color: "var(--p-text)" }} className="font-medium">{app.still_in_school ? "Yes" : "No"}</div>
                       </div>
-                      <div className="bg-gray-50 rounded-xl p-3">
-                        <div className="text-xs text-gray-400 mb-1">Time commitment</div>
-                        <div className="font-medium text-[#2D2F3A]">{app.expected_time_commitment}</div>
+                      <div style={{ background: "var(--p-card-hover)" }} className="rounded-xl p-3">
+                        <div style={{ color: "var(--p-muted)" }} className="text-xs mb-1">Time commitment</div>
+                        <div style={{ color: "var(--p-text)" }} className="font-medium">{app.expected_time_commitment}</div>
                       </div>
-                      <div className="bg-gray-50 rounded-xl p-3">
-                        <div className="text-xs text-gray-400 mb-1">Submitted</div>
-                        <div className="font-medium text-[#2D2F3A]">{new Date(app.created_at).toLocaleDateString()}</div>
+                      <div style={{ background: "var(--p-card-hover)" }} className="rounded-xl p-3">
+                        <div style={{ color: "var(--p-muted)" }} className="text-xs mb-1">Submitted</div>
+                        <div style={{ color: "var(--p-text)" }} className="font-medium">{new Date(app.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
 
                     {/* Essays */}
                     <div className="space-y-4">
                       <div>
-                        <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                          Change they'd implement
+                        <h5 style={{ color: "var(--p-text-secondary)" }} className="text-xs font-semibold uppercase tracking-wider mb-2">
+                          Change they&apos;d implement
                         </h5>
-                        <p className="text-sm text-gray-700 bg-gray-50 rounded-xl p-4 leading-relaxed">
+                        <p style={{ color: "var(--p-text-secondary)", background: "var(--p-card-hover)" }} className="text-sm rounded-xl p-4 leading-relaxed">
                           {app.one_change_essay}
                         </p>
                       </div>
                       <div>
-                        <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        <h5 style={{ color: "var(--p-text-secondary)" }} className="text-xs font-semibold uppercase tracking-wider mb-2">
                           Where they fell short
                         </h5>
-                        <p className="text-sm text-gray-700 bg-gray-50 rounded-xl p-4 leading-relaxed">
+                        <p style={{ color: "var(--p-text-secondary)", background: "var(--p-card-hover)" }} className="text-sm rounded-xl p-4 leading-relaxed">
                           {app.fell_short_essay}
                         </p>
                       </div>
                       {app.why_mist && (
                         <div>
-                          <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                          <h5 style={{ color: "var(--p-text-secondary)" }} className="text-xs font-semibold uppercase tracking-wider mb-2">
                             Why MIST
                           </h5>
-                          <p className="text-sm text-gray-700 bg-gray-50 rounded-xl p-4 leading-relaxed">
+                          <p style={{ color: "var(--p-text-secondary)", background: "var(--p-card-hover)" }} className="text-sm rounded-xl p-4 leading-relaxed">
                             {app.why_mist}
                           </p>
                         </div>
@@ -316,13 +320,13 @@ export default function ReviewDashboard({ applications: initial, positions, prof
 
                     {/* Reviewer notes */}
                     <div>
-                      <h4 className="text-sm font-bold text-[#2D2F3A] mb-3 flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-[#2EA87A]" /> Reviewer Notes
+                      <h4 style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }} className="text-sm font-bold mb-3 flex items-center gap-2">
+                        <MessageSquare style={{ color: "var(--p-accent-green)" }} className="w-4 h-4" /> Reviewer Notes
                       </h4>
                       {app.reviewer_notes.length > 0 && (
                         <div className="space-y-2 mb-3">
                           {app.reviewer_notes.map((note) => (
-                            <div key={note.id} className="bg-gray-50 rounded-xl p-4">
+                            <div key={note.id} style={{ background: "var(--p-card-hover)" }} className="rounded-xl p-4">
                               {note.knows_applicant && (
                                 <div className="flex items-center gap-1.5 mb-2">
                                   <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />
@@ -332,19 +336,20 @@ export default function ReviewDashboard({ applications: initial, positions, prof
                                   </span>
                                 </div>
                               )}
-                              <p className="text-sm text-gray-700">{note.note}</p>
+                              <p style={{ color: "var(--p-text-secondary)" }} className="text-sm">{note.note}</p>
                             </div>
                           ))}
                         </div>
                       )}
 
                       {/* Add note */}
-                      <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+                      <div style={{ borderColor: "var(--p-border)" }} className="border rounded-xl p-4 space-y-3">
                         <textarea
                           value={noteText}
                           onChange={(e) => setNoteText(e.target.value)}
                           placeholder="Add a note about this applicant…"
                           rows={2}
+                          style={{ color: "var(--p-text)" }}
                           className="w-full text-sm border-none outline-none resize-none bg-transparent placeholder:text-gray-400"
                         />
                         <div className="flex items-center justify-between gap-4">
@@ -355,7 +360,7 @@ export default function ReviewDashboard({ applications: initial, positions, prof
                               onChange={(e) => setKnowsApplicant(e.target.checked)}
                               className="accent-[#1B3464]"
                             />
-                            <span className="text-xs text-gray-600">I know this person personally</span>
+                            <span style={{ color: "var(--p-text-secondary)" }} className="text-xs">I know this person personally</span>
                           </label>
                           <button
                             onClick={() => addNote(app.id)}
@@ -371,7 +376,8 @@ export default function ReviewDashboard({ applications: initial, positions, prof
                             value={knowsContext}
                             onChange={(e) => setKnowsContext(e.target.value)}
                             placeholder="How do you know them? (optional)"
-                            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#2E7BC4]"
+                            style={{ borderColor: "var(--p-border)", color: "var(--p-text)", background: "var(--p-card)" }}
+                            className="w-full text-xs border rounded-lg px-3 py-2 focus:outline-none"
                           />
                         )}
                       </div>
@@ -379,7 +385,7 @@ export default function ReviewDashboard({ applications: initial, positions, prof
 
                     {/* Status actions */}
                     <div>
-                      <h4 className="text-sm font-bold text-[#2D2F3A] mb-3">Update Status</h4>
+                      <h4 style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }} className="text-sm font-bold mb-3">Update Status</h4>
                       <div className="flex flex-wrap gap-2">
                         {STATUS_OPTIONS.map((opt) => {
                           const Icon = opt.icon;
@@ -388,11 +394,10 @@ export default function ReviewDashboard({ applications: initial, positions, prof
                               key={opt.value}
                               onClick={() => updateStatus(app.id, opt.value)}
                               disabled={updatingStatus === app.id || app.status === opt.value}
-                              className={`flex items-center gap-1.5 px-3 py-2 border rounded-xl text-xs font-medium transition-all disabled:opacity-40 ${
-                                app.status === opt.value
-                                  ? "border-[#1B3464] bg-[#EEF2F9] text-[#1B3464]"
-                                  : "border-gray-200 hover:border-gray-300 text-gray-600"
-                              }`}
+                              style={app.status === opt.value
+                                ? { borderColor: "#1B3464", background: "#EEF2F9", color: "#1B3464" }
+                                : { borderColor: "var(--p-border)", color: "var(--p-text-secondary)" }}
+                              className="flex items-center gap-1.5 px-3 py-2 border rounded-xl text-xs font-medium transition-all disabled:opacity-40"
                             >
                               <Icon className={`w-3.5 h-3.5 ${opt.color}`} />
                               {opt.label}

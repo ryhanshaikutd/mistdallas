@@ -145,13 +145,13 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
   const StatCard = ({ icon: Icon, label, value, sub, color }: {
     icon: React.ElementType; label: string; value: string | number; sub?: string; color: string;
   }) => (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
-      <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center mb-3`}>
+    <div className="rounded-2xl border p-5" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: color }}>
         <Icon className="w-5 h-5 text-white" />
       </div>
-      <div className="text-2xl font-bold text-[#2D2F3A]">{value}</div>
-      <div className="text-sm text-gray-500 mt-0.5">{label}</div>
-      {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
+      <div className="text-2xl font-bold" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>{value}</div>
+      <div className="text-sm mt-0.5" style={{ color: "var(--p-text-secondary)" }}>{label}</div>
+      {sub && <div className="text-xs mt-1" style={{ color: "var(--p-muted)" }}>{sub}</div>}
     </div>
   );
 
@@ -169,9 +169,9 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
         <>
           {/* Application status breakdown */}
           <div className="grid lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-6">
-              <h3 className="font-bold text-[#2D2F3A] mb-5 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-[#2E7BC4]" /> Applications by Team
+            <div className="lg:col-span-2 rounded-2xl border p-6" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+              <h3 className="font-bold mb-5 flex items-center gap-2" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>
+                <BarChart3 className="w-4 h-4" style={{ color: "#2E7BC4" }} /> Applications by Team
               </h3>
               {byTeam.length > 0 ? (
                 <ResponsiveContainer width="100%" height={220}>
@@ -185,14 +185,14 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-[220px] flex items-center justify-center text-gray-400 text-sm">No application data yet.</div>
+                <div className="h-[220px] flex items-center justify-center text-sm" style={{ color: "var(--p-muted)" }}>No application data yet.</div>
               )}
             </div>
 
             <div className="space-y-4">
               {/* Gender breakdown */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h4 className="font-bold text-[#2D2F3A] mb-4 text-sm">Gender Split</h4>
+              <div className="rounded-2xl border p-5" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+                <h4 className="font-bold mb-4 text-sm" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>Gender Split</h4>
                 <ResponsiveContainer width="100%" height={120}>
                   <PieChart>
                     <Pie data={genderData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={false} labelLine={false} fontSize={10}>
@@ -204,8 +204,8 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
               </div>
 
               {/* Internal/External */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <h4 className="font-bold text-[#2D2F3A] mb-4 text-sm">Internal vs External</h4>
+              <div className="rounded-2xl border p-5" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+                <h4 className="font-bold mb-4 text-sm" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>Internal vs External</h4>
                 <ResponsiveContainer width="100%" height={120}>
                   <PieChart>
                     <Pie data={internalData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={false} labelLine={false} fontSize={10}>
@@ -219,14 +219,14 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
           </div>
 
           {/* Status distribution */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <h3 className="font-bold text-[#2D2F3A] mb-5">Application Status Breakdown</h3>
+          <div className="rounded-2xl border p-6" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+            <h3 className="font-bold mb-5" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>Application Status Breakdown</h3>
             <div className="flex flex-wrap gap-3">
               {statusData.map((s) => (
-                <div key={s.key} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-100">
+                <div key={s.key} className="flex items-center gap-2 px-4 py-2 rounded-xl border" style={{ borderColor: "var(--p-border)" }}>
                   <div className="w-3 h-3 rounded-full" style={{ background: STATUS_COLORS[s.key] ?? "#9CA3AF" }} />
-                  <span className="text-sm font-medium text-[#2D2F3A] capitalize">{s.name}</span>
-                  <span className="text-sm text-gray-400">{s.value}</span>
+                  <span className="text-sm font-medium capitalize" style={{ color: "var(--p-text)" }}>{s.name}</span>
+                  <span className="text-sm" style={{ color: "var(--p-muted)" }}>{s.value}</span>
                 </div>
               ))}
             </div>
@@ -236,24 +236,24 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
 
       {/* Task completion by team */}
       {teamTaskData.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h3 className="font-bold text-[#2D2F3A] mb-5 flex items-center gap-2">
-            <CheckSquare className="w-4 h-4 text-[#2EA87A]" /> Task Completion by Team
+        <div className="rounded-2xl border p-6" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+          <h3 className="font-bold mb-5 flex items-center gap-2" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>
+            <CheckSquare className="w-4 h-4" style={{ color: "#2EA87A" }} /> Task Completion by Team
           </h3>
           <div className="space-y-3">
             {teamTaskData.map((d) => {
               const rate = d.total > 0 ? Math.round((d.done / d.total) * 100) : 0;
               return (
                 <div key={d.team} className="flex items-center gap-4">
-                  <div className="w-28 text-sm text-gray-600 flex-shrink-0">{d.team}</div>
-                  <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                  <div className="w-28 text-sm flex-shrink-0" style={{ color: "var(--p-text-secondary)" }}>{d.team}</div>
+                  <div className="flex-1 rounded-full h-3 overflow-hidden" style={{ background: "var(--p-card-hover)" }}>
                     <div
                       className="h-full rounded-full transition-all"
                       style={{ width: `${rate}%`, background: "linear-gradient(90deg, #2E7BC4, #2EA87A)" }}
                     />
                   </div>
-                  <div className="w-12 text-right text-sm font-semibold text-[#2D2F3A]">{rate}%</div>
-                  <div className="text-xs text-gray-400 w-16 text-right">{d.done}/{d.total} done</div>
+                  <div className="w-12 text-right text-sm font-semibold" style={{ color: "var(--p-text)" }}>{rate}%</div>
+                  <div className="text-xs w-16 text-right" style={{ color: "var(--p-muted)" }}>{d.done}/{d.total} done</div>
                 </div>
               );
             })}
@@ -262,24 +262,29 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
       )}
 
       {/* Attendance */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+      <div className="rounded-2xl border p-6 space-y-5" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-[#2D2F3A] flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-[#2EA87A]" /> Event Attendance
+          <h3 className="font-bold flex items-center gap-2" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>
+            <CalendarDays className="w-4 h-4" style={{ color: "#2EA87A" }} /> Event Attendance
           </h3>
-          <label className={`flex items-center gap-2 px-4 py-2 rounded-xl border cursor-pointer text-sm font-medium transition-all ${uploading ? "opacity-50 cursor-wait" : "border-[#1B3464] text-[#1B3464] hover:bg-[#EEF2F9]"}`}>
+          <label
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border cursor-pointer text-sm font-medium transition-all"
+            style={uploading
+              ? { opacity: 0.5, cursor: "wait", borderColor: "var(--p-border)", color: "var(--p-muted)" }
+              : { borderColor: "#1B3464", color: "#1B3464" }}
+          >
             <Upload className="w-4 h-4" />
             {uploading ? "Uploading…" : "Upload CSV"}
             <input ref={fileRef} type="file" accept=".csv" onChange={handleCSVUpload} className="sr-only" />
           </label>
         </div>
 
-        <p className="text-xs text-gray-400">
+        <p className="text-xs" style={{ color: "var(--p-muted)" }}>
           Export from MyMIST and upload. Required columns: Event Name, Event Date, Name, School (optional), Email (optional).
         </p>
 
         {attendanceByEvent.length === 0 ? (
-          <div className="py-10 text-center text-gray-400 text-sm">
+          <div className="py-10 text-center text-sm" style={{ color: "var(--p-muted)" }}>
             No attendance data yet. Upload a CSV from MyMIST to get started.
           </div>
         ) : (
