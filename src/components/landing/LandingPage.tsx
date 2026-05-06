@@ -99,8 +99,8 @@ function StatItem({ end, label, prefix, suffix, delay }: { end: number; label: s
 function StatBar() {
   return (
     <section className="bg-[#1B3464]">
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-3 gap-20">
+      <div className="max-w-5xl mx-auto px-6 py-16">
+        <div className="flex items-center justify-around">
           {STATS.map((s, i) => (
             <StatItem key={s.label} {...s} delay={i * 120} />
           ))}
@@ -306,16 +306,21 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
         </div>
       </section>
 
-      {/* ── TOURNAMENT PHOTO ── */}
-      <section className="relative h-[60vh] overflow-hidden">
-        <Image src="/photo2.jpeg" alt="MIST Dallas crowd" fill className="object-cover" />
-        <div className="absolute inset-0 bg-[#0F2240]/75" />
-        <FadeUp className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6">
-          <h2 className="text-5xl md:text-7xl font-extrabold text-white leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
-            This is MIST.
-          </h2>
-          <p className="text-white/50 text-lg mt-4 max-w-md">Thousands of students. One day. Pure energy.</p>
-        </FadeUp>
+      {/* ── THIS IS MIST + GALLERY ── */}
+      <section className="relative overflow-hidden bg-[#060D18]">
+        <Image src="/photo2.jpeg" alt="MIST Dallas crowd" fill className="object-cover object-center" />
+        <div className="absolute inset-0 bg-[#0F2240]/80" />
+        <div className="relative z-10 pt-24 pb-0 text-center px-6">
+          <FadeUp>
+            <h2 className="text-5xl md:text-7xl font-extrabold text-white leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
+              This is MIST.
+            </h2>
+            <p className="text-white/50 text-lg mt-4 max-w-md mx-auto">Thousands of students. One day. Pure energy.</p>
+          </FadeUp>
+          <div className="mt-16">
+            {galleryPhotos.length > 0 && <GalleryCarousel photos={galleryPhotos} dark />}
+          </div>
+        </div>
       </section>
 
       {/* ── CATEGORIES ── */}
@@ -421,9 +426,6 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
           )}
         </div>
       </section>
-
-      {/* ── GALLERY CAROUSEL ── */}
-      {galleryPhotos.length > 0 && <GalleryCarousel photos={galleryPhotos} />}
 
       {/* ── CLOSING CTA ── */}
       <section className="relative h-[70vh] overflow-hidden flex items-center justify-center">
