@@ -17,14 +17,11 @@ export default async function Home({ searchParams }: Props) {
   const supabase = await createClient();
   const admin = createAdminClient();
 
-  const [{ data: qualifiers }, { data: galleryFiles }] = await Promise.all([
+  const [{ count: qualifierCount }, { data: galleryFiles }] = await Promise.all([
     supabase
       .from("qualifiers")
-      .select("*")
-      .eq("qualified_for_nationals", true)
-      .order("year", { ascending: false })
-      .order("category")
-      .order("placement"),
+      .select("*", { count: "exact", head: true })
+      .eq("qualified_for_nationals", true),
     admin.storage
       .from("gallery")
       .list("", { limit: 20, sortBy: { column: "created_at", order: "desc" } }),
@@ -34,5 +31,5 @@ export default async function Home({ searchParams }: Props) {
     .filter(f => !f.name.startsWith("."))
     .map(f => admin.storage.from("gallery").getPublicUrl(f.name).data.publicUrl);
 
-  return <LandingPage qualifiers={qualifiers ?? []} galleryPhotos={galleryPhotos} />;
+  return <LandingPage hasQualifiers={(qualifierCount ?? 0) > 0} galleryPhotos={galleryPhotos} />;
 }
