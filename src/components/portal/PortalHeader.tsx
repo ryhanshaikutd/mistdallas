@@ -12,6 +12,7 @@ const TITLES: Record<string, string> = {
   "/portal/interviews": "Interviews",
   "/portal/planning": "Planning",
   "/portal/insights": "Insights",
+  "/portal/settings": "Settings",
 };
 
 export default function PortalHeader({ profile }: Props) {

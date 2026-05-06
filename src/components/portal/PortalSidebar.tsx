@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Users, Calendar, BarChart3, CheckSquare, LogOut } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, Calendar, BarChart3, CheckSquare, Settings, LogOut } from "lucide-react";
 import type { Profile } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,6 +16,7 @@ const NAV = [
   { href: "/portal/interviews", label: "Interviews", icon: Calendar, roles: ["regional_director", "internal_ad", "external_ad"] },
   { href: "/portal/planning", label: "Planning", icon: CheckSquare, roles: ["regional_director", "internal_ad", "external_ad", "director", "chair", "lead"] },
   { href: "/portal/insights", label: "Insights", icon: BarChart3, roles: ["regional_director", "internal_ad", "external_ad", "director"] },
+  { href: "/portal/settings", label: "Settings", icon: Settings, roles: ["all"] },
 ];
 
 function canSee(roles: string[], role?: string) {
