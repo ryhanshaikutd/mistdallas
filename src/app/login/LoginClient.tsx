@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { INTERNAL_EMAIL_DOMAIN } from "@/lib/constants";
-import { Chrome, Star } from "lucide-react";
+import { Globe, Star } from "lucide-react";
 
 export default function LoginClient() {
   const [loading, setLoading] = useState(false);
@@ -97,7 +97,7 @@ export default function LoginClient() {
             {loading ? (
               <div className="w-5 h-5 border-2 border-gray-300 border-t-[#2E7BC4] rounded-full animate-spin" />
             ) : (
-              <Chrome className="w-5 h-5 text-[#4285F4]" />
+              <Globe className="w-5 h-5 text-[#4285F4]" />
             )}
             {loading ? "Signing in…" : "Continue with Google"}
           </button>

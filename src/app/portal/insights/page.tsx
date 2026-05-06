@@ -32,10 +32,23 @@ export default async function InsightsPage() {
     supabase.from("attendance_records").select("id, event_name, event_date, school, team, cycle_year").order("event_date"),
   ]);
 
+  // Normalize Supabase nested query shape to match component types
+  type AppRow = {
+    id: string; status: string; gender: string; is_internal: boolean; created_at: string;
+    application_rankings?: { position?: { team: string } | null }[];
+  };
+
+  const normalizedApps: AppRow[] = (applications ?? []).map((a) => ({
+    ...a,
+    application_rankings: (a.application_rankings ?? []).map((r) => ({
+      position: Array.isArray(r.position) ? r.position[0] ?? null : r.position ?? null,
+    })),
+  }));
+
   return (
     <InsightsDashboard
       profile={profile}
-      applications={applications ?? []}
+      applications={normalizedApps}
       tasks={tasks ?? []}
       attendance={attendance ?? []}
       isLeadership={isLeadership}

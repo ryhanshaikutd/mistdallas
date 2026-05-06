@@ -133,7 +133,7 @@ export default function ApplicationForm({ profile, positions, cycle, existingApp
 
       const rankPayload = rankings
         .map((posId, idx) => posId ? { application_id: app.id, position_id: posId, rank: idx + 1 } : null)
-        .filter(Boolean);
+        .filter((x): x is { application_id: string; position_id: string; rank: number } => x !== null);
 
       const { error: rankErr } = await supabase.from("application_rankings").insert(rankPayload);
       if (rankErr) throw rankErr;
