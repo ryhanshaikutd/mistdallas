@@ -165,7 +165,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
       {/* ── QUALIFIERS BANNER ── */}
       {hasQualifiers && !bannerDismissed && (
         <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-2rem)] max-w-xl"
+          className="fixed bottom-6 right-6 z-50 w-64"
           style={{ animation: "slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.8s both" }}
         >
           <div className="relative">
@@ -186,44 +186,40 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
             <div className="absolute top-0 left-0 right-0 h-px"
               style={{ background: "linear-gradient(90deg, transparent, rgba(122,219,184,0.6), transparent)" }} />
 
-            <div className="flex items-center gap-4 px-5 py-4">
-              {/* Trophy + pulse ring */}
-              <div className="relative flex-shrink-0">
-                <div className="absolute inset-0 rounded-full animate-ping opacity-20"
-                  style={{ background: "#7ADBB8", animationDuration: "2s" }} />
-                <div className="relative w-11 h-11 rounded-full flex items-center justify-center"
-                  style={{ background: "rgba(122,219,184,0.15)", border: "1px solid rgba(122,219,184,0.3)" }}>
-                  <Trophy className="w-5 h-5 text-[#7ADBB8]" />
+            <div className="flex flex-col gap-4 px-5 py-5">
+              {/* Top row: trophy + dismiss */}
+              <div className="flex items-center justify-between">
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full animate-ping opacity-20"
+                    style={{ background: "#7ADBB8", animationDuration: "2s" }} />
+                  <div className="relative w-10 h-10 rounded-full flex items-center justify-center"
+                    style={{ background: "rgba(122,219,184,0.15)", border: "1px solid rgba(122,219,184,0.3)" }}>
+                    <Trophy className="w-4.5 h-4.5 text-[#7ADBB8]" />
+                  </div>
                 </div>
+                <button
+                  onClick={() => setBannerDismissed(true)}
+                  className="text-white/25 hover:text-white/60 transition-colors"
+                  aria-label="Dismiss"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
               {/* Text */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#7ADBB8] opacity-70">2026 Nationals</span>
-                  <span className="w-1 h-1 rounded-full bg-[#7ADBB8] opacity-40" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#7ADBB8] opacity-70">Just Announced</span>
-                </div>
-                <div className="text-white font-bold text-base leading-tight">Qualifiers are out. Did you make it?</div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-[#7ADBB8] opacity-70 mb-1">2026 · Just Announced</div>
+                <div className="text-white font-bold text-base leading-snug">Qualifiers are out. Did you make it?</div>
               </div>
 
               {/* CTA */}
               <Link
                 href="/nationals"
-                className="flex-shrink-0 flex items-center gap-1.5 font-bold text-sm px-4 py-2.5 rounded-2xl transition-all duration-200 hover:scale-105"
+                className="flex items-center justify-center gap-1.5 font-bold text-sm px-4 py-2.5 rounded-2xl transition-all duration-200 hover:scale-105"
                 style={{ background: "linear-gradient(135deg, #7ADBB8 0%, #4ECBA0 100%)", color: "#0D1E3A" }}
               >
-                View <ArrowRight className="w-3.5 h-3.5" />
+                View Qualifiers <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-
-              {/* Dismiss */}
-              <button
-                onClick={() => setBannerDismissed(true)}
-                className="flex-shrink-0 text-white/25 hover:text-white/60 transition-colors"
-                aria-label="Dismiss"
-              >
-                <X className="w-4 h-4" />
-              </button>
             </div>
           </div>
           </div>
@@ -579,8 +575,8 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
           }
         }
         @keyframes slideUp {
-          from { opacity: 0; transform: translate(-50%, 20px); }
-          to   { opacity: 1; transform: translate(-50%, 0); }
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes borderPulse {
           0%, 100% { border-color: rgba(122,219,184,0.4); box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(122,219,184,0.08) inset; }
