@@ -174,16 +174,14 @@ export default function LandingPage() {
         <div className="relative z-10 text-center px-6 max-w-5xl mx-auto pt-16">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <Image
-                src="/logo.png"
-                alt="MIST Dallas"
-                width={120}
-                height={120}
-                className="object-contain"
-                priority
-              />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="MIST Dallas"
+              width={140}
+              height={140}
+              className="object-contain drop-shadow-2xl brightness-0 invert"
+              priority
+            />
           </div>
 
           {/* Tagline badge */}
