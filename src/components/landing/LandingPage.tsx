@@ -19,7 +19,7 @@ const NAV_LINKS = [
 ];
 
 const STATS = [
-  { end: 2018, label: "Est.", prefix: "", suffix: "" },
+  { end: 2018, label: "Est.", prefix: "", suffix: "", raw: true },
   { end: 850,  label: "Competitors", prefix: "", suffix: "+" },
   { end: 25,   label: "Schools & Orgs", prefix: "", suffix: "+" },
 ];
@@ -116,7 +116,7 @@ function FadeUp({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
-function StatItem({ end, label, prefix, suffix, delay }: { end: number; label: string; prefix: string; suffix: string; delay: number }) {
+function StatItem({ end, label, prefix, suffix, delay, raw = false }: { end: number; label: string; prefix: string; suffix: string; delay: number; raw?: boolean }) {
   const { ref, inView } = useInView(0.3);
   const count = useCountUp(end, 1600, inView);
   return (
@@ -126,7 +126,7 @@ function StatItem({ end, label, prefix, suffix, delay }: { end: number; label: s
       transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
     }}>
       <div className="text-5xl md:text-6xl font-extrabold text-[#7ADBB8]" style={{ fontFamily: "var(--font-syne)" }}>
-        {prefix}{count.toLocaleString()}{suffix}
+        {prefix}{raw ? count : count.toLocaleString()}{suffix}
       </div>
       <div className="text-xs text-white/40 uppercase tracking-widest font-semibold mt-2">{label}</div>
     </div>

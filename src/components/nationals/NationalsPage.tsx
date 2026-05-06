@@ -57,7 +57,7 @@ const PLACEMENT_STYLE: Record<string, { bg: string; color: string; label: string
 const PLACEMENT_ORDER = ["1st", "2nd", "3rd", "4th", "5th"];
 
 // Animated counter
-function StatCounter({ target, label, delay = 0 }: { target: number; label: string; delay?: number }) {
+function StatCounter({ target, label, delay = 0, raw = false }: { target: number; label: string; delay?: number; raw?: boolean }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const started = useRef(false);
@@ -88,7 +88,7 @@ function StatCounter({ target, label, delay = 0 }: { target: number; label: stri
   return (
     <div ref={ref} className="text-center px-6 py-5 rounded-2xl" style={{ background: "rgba(27,52,100,0.06)" }}>
       <div className="text-4xl font-extrabold text-[#1B3464] tabular-nums" style={{ fontFamily: "var(--font-syne)" }}>
-        {count.toLocaleString()}
+        {raw ? count : count.toLocaleString()}
       </div>
       <div className="text-[11px] text-gray-400 uppercase tracking-widest mt-2 font-semibold">{label}</div>
     </div>
@@ -134,7 +134,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
           <StatCounter target={totalSlots} label="Qualifying Slots" delay={0} />
           <StatCounter target={uniqueSchools} label="Schools" delay={80} />
           <StatCounter target={uniqueEvents} label="Events" delay={160} />
-          <StatCounter target={year} label="Season" delay={240} />
+          <StatCounter target={year} label="Season" delay={240} raw />
         </div>
 
         {/* Category tabs */}
