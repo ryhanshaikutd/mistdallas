@@ -38,8 +38,15 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Redirect logged-in users away from login
+  // Redirect logged-in users away from login page
   if (pathname === '/login' && user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/portal'
+    return NextResponse.redirect(url)
+  }
+
+  // If a logged-in user lands on the root with no auth code, send them to the portal
+  if (pathname === '/' && user && !request.nextUrl.searchParams.get('code')) {
     const url = request.nextUrl.clone()
     url.pathname = '/portal'
     return NextResponse.redirect(url)
