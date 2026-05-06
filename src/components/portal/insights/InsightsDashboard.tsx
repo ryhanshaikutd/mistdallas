@@ -195,7 +195,7 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
                 <h4 className="font-bold text-[#2D2F3A] mb-4 text-sm">Gender Split</h4>
                 <ResponsiveContainer width="100%" height={120}>
                   <PieChart>
-                    <Pie data={genderData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={({ name, percent }: { name: string; percent?: number }) => `${name} ${Math.round((percent ?? 0) * 100)}%`} labelLine={false} fontSize={10}>
+                    <Pie data={genderData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={(props) => `${props.name} ${Math.round(((props.percent as number) ?? 0) * 100)}%`} labelLine={false} fontSize={10}>
                       {genderData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i]} />)}
                     </Pie>
                     <Tooltip />
@@ -208,7 +208,7 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
                 <h4 className="font-bold text-[#2D2F3A] mb-4 text-sm">Internal vs External</h4>
                 <ResponsiveContainer width="100%" height={120}>
                   <PieChart>
-                    <Pie data={internalData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={({ name, percent }: { name: string; percent?: number }) => `${name} ${Math.round((percent ?? 0) * 100)}%`} labelLine={false} fontSize={10}>
+                    <Pie data={internalData} cx="50%" cy="50%" innerRadius={30} outerRadius={55} dataKey="value" label={(props) => `${props.name} ${Math.round(((props.percent as number) ?? 0) * 100)}%`} labelLine={false} fontSize={10}>
                       {internalData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i + 2]} />)}
                     </Pie>
                     <Tooltip />
