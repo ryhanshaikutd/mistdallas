@@ -119,8 +119,8 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
               (a, b) => PLACEMENT_ORDER.indexOf(a.placement ?? "") - PLACEMENT_ORDER.indexOf(b.placement ?? "")
             );
             return (
-              <div key={event} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-[#1B3464]/20 transition-all duration-300">
-                <div className="text-[#2EA87A] text-xs font-bold uppercase tracking-wide mb-4">{event}</div>
+              <div key={event} className="rounded-2xl p-5 transition-all duration-300" style={{ background: "#1B3464" }}>
+                <div className="text-[#7ADBB8] text-xs font-bold uppercase tracking-wide mb-4">{event}</div>
                 <div className="space-y-3">
                   {sorted.map((q, idx) => {
                     const ps = PLACEMENT_STYLE[q.placement ?? "5th"] ?? PLACEMENT_STYLE["5th"];
@@ -132,12 +132,12 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
                           {q.placement}
                         </span>
                         <div className="min-w-0">
-                          <div className="text-gray-700 text-sm leading-tight">{q.school}</div>
+                          <div className="text-white text-sm leading-tight">{q.school}</div>
                           {ids.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1.5">
                               {ids.map(mid => (
                                 <span key={mid} className="text-[10px] font-mono px-1.5 py-0.5 rounded"
-                                  style={{ background: "#F3F4F6", color: "#9CA3AF" }}>
+                                  style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.45)" }}>
                                   {mid}
                                 </span>
                               ))}
@@ -177,7 +177,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
         <div className="text-center mb-16">
           <span className="text-[#2EA87A] text-xs font-bold uppercase tracking-widest">2026 Nationals</span>
           <h1 className="text-5xl md:text-7xl font-extrabold text-[#1B3464] mt-4 leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
-            Dallas Represents.
+            Dallas in the Limelight.
           </h1>
           <p className="text-gray-400 mt-4 text-lg max-w-lg mx-auto">
             Every school and qualifier that earned their spot on the national stage.
