@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import {
-  Trophy, Users, Music, BookOpen, Swords,
-  Palette, Mic, Menu, X, ChevronRight, ArrowRight,
+  Trophy, Users, BookOpen, Palette, Mic,
+  Swords, Menu, X, ChevronRight, ArrowRight,
 } from "lucide-react";
 import GalleryCarousel from "./GalleryCarousel";
 
@@ -41,12 +41,48 @@ function useCountUp(end: number, duration = 1800, inView = false) {
 }
 
 const CATEGORIES = [
-  { icon: Swords, title: "Sports", color: "bg-[#1B3464]" },
-  { icon: Palette, title: "Arts", color: "bg-[#2E7BC4]" },
-  { icon: Users, title: "Group Competitions", color: "bg-[#1A6B3C]" },
-  { icon: BookOpen, title: "Quran", color: "bg-[#2EA87A]" },
-  { icon: Mic, title: "Writing & Oratory", color: "bg-[#1B3464]" },
-  { icon: Music, title: "Knowledge Bowl", color: "bg-[#2E7BC4]" },
+  {
+    icon: BookOpen,
+    title: "Knowledge & Quran",
+    color: "#1B3464",
+    events: ["Knowledge Test", "Quran Memorization", "Quran Recitation"],
+    desc: "Test your Islamic knowledge and showcase your Quran recitation across four skill levels.",
+  },
+  {
+    icon: Palette,
+    title: "Arts",
+    color: "#2E7BC4",
+    events: ["2D Art", "3D Art", "Photography", "Graphic Design", "Fashion Design"],
+    desc: "Express yourself through visual mediums — from traditional painting to fashion and digital design.",
+  },
+  {
+    icon: Mic,
+    title: "Writing & Oratory",
+    color: "#1A6B3C",
+    events: ["Original Oratory", "Extemporaneous Speaking", "Spoken Word", "Prepared Essay", "Short Fiction", "Poetry"],
+    desc: "Find your voice through prepared speeches, impromptu essays, spoken word, and written storytelling.",
+  },
+  {
+    icon: Swords,
+    title: "Brackets",
+    color: "#2EA87A",
+    events: ["Debate", "MIST Bowl", "Math Olympics", "Improv"],
+    desc: "Head-to-head competitions that test quick thinking, teamwork, and competitive strategy.",
+  },
+  {
+    icon: Users,
+    title: "Group Projects",
+    color: "#1B3464",
+    events: ["Business Venture", "Short Film", "Nasheed & Rap", "Science Fair", "Humanitarian Service"],
+    desc: "Collaborate with your team to pitch, perform, create, and make a real-world impact.",
+  },
+  {
+    icon: Trophy,
+    title: "Sports",
+    color: "#2E7BC4",
+    events: ["Basketball", "Soccer", "Volleyball", "Badminton", "Flag Football"],
+    desc: "Compete on the court and field in bracket-style athletic tournaments throughout the weekend.",
+  },
 ];
 
 function useInView(threshold = 0.15) {
@@ -324,25 +360,45 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
       </section>
 
       {/* ── CATEGORIES ── */}
-      <section id="categories" className="py-28 px-6 bg-[#F8FAFC]">
+      <section id="categories" className="py-28 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
-          <FadeUp className="mb-14">
-            <span className="text-[#2EA87A] text-xs font-bold uppercase tracking-widest">Categories</span>
-            <h2 className="text-5xl md:text-6xl font-extrabold text-[#1B3464] mt-4" style={{ fontFamily: "var(--font-syne)" }}>
+          <FadeUp className="mb-16">
+            <span className="text-[#2EA87A] text-xs font-bold uppercase tracking-widest">Competitions</span>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-[#1B3464] mt-4 mb-4" style={{ fontFamily: "var(--font-syne)" }}>
               Something for<br />everyone.
             </h2>
+            <p className="text-gray-400 text-lg max-w-lg">Six categories, 20+ individual events — every student has a stage.</p>
           </FadeUp>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {CATEGORIES.map((cat, i) => {
               const Icon = cat.icon;
               return (
-                <FadeUp key={cat.title} delay={i * 60}>
-                  <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group cursor-default">
-                    <div className={`w-10 h-10 rounded-xl ${cat.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className="w-5 h-5 text-white" />
+                <FadeUp key={cat.title} delay={i * 70}>
+                  <div className="group rounded-2xl border border-gray-100 p-6 hover:border-transparent hover:shadow-xl transition-all duration-300 cursor-default h-full flex flex-col"
+                    style={{ background: "white" }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = cat.color + "08"}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "white"}
+                  >
+                    {/* Icon */}
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
+                      style={{ background: cat.color + "15" }}>
+                      <Icon className="w-5 h-5" style={{ color: cat.color }} />
                     </div>
-                    <h3 className="font-bold text-[#1B3464] text-base" style={{ fontFamily: "var(--font-syne)" }}>{cat.title}</h3>
+
+                    {/* Title & desc */}
+                    <h3 className="font-bold text-[#1B3464] text-base mb-1.5" style={{ fontFamily: "var(--font-syne)" }}>{cat.title}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed mb-4 flex-1">{cat.desc}</p>
+
+                    {/* Event tags */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {cat.events.map(ev => (
+                        <span key={ev} className="text-xs font-medium px-2.5 py-1 rounded-full"
+                          style={{ background: cat.color + "12", color: cat.color }}>
+                          {ev}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </FadeUp>
               );
