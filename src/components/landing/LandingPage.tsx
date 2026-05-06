@@ -19,10 +19,10 @@ const NAV_LINKS = [
 ];
 
 const STATS = [
-  { value: "10+", label: "Years" },
-  { value: "1,000+", label: "Competitors" },
-  { value: "50+", label: "Schools" },
-  { value: "20+", label: "Categories" },
+  { value: "2018", label: "Est." },
+  { value: "850+", label: "Competitors" },
+  { value: "25+", label: "Schools" },
+  { value: "200+", label: "Volunteers" },
 ];
 
 const CATEGORIES = [
@@ -252,7 +252,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
               Muslim high schoolers across Texas competing, growing, and celebrating their identity — in a fully halal environment.
             </p>
             <div className="flex flex-wrap gap-3">
-              {["Halal Environment", "Ihsan", "10+ Years"].map((tag) => (
+              {["Halal Environment", "Ihsan", "Est. 2018"].map((tag) => (
                 <span key={tag} className="bg-[#EEF2F9] text-[#1B3464] text-sm font-semibold px-4 py-2 rounded-full">{tag}</span>
               ))}
             </div>
@@ -263,8 +263,8 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
               <Image src="/photo1.jpeg" alt="MIST Dallas tournament" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1B3464]/70 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
-                <div className="text-white font-bold text-2xl" style={{ fontFamily: "var(--font-syne)" }}>1,000+ Competitors</div>
-                <div className="text-white/60 text-sm mt-1">from 50+ Texas schools</div>
+                <div className="text-white font-bold text-2xl" style={{ fontFamily: "var(--font-syne)" }}>850+ Competitors</div>
+                <div className="text-white/60 text-sm mt-1">from 25+ Texas schools</div>
               </div>
             </div>
           </FadeUp>
