@@ -21,7 +21,7 @@ const NAV_LINKS = [
 const STATS = [
   { end: 2018, label: "Est.", prefix: "", suffix: "" },
   { end: 850,  label: "Competitors", prefix: "", suffix: "+" },
-  { end: 25,   label: "Schools", prefix: "", suffix: "+" },
+  { end: 25,   label: "Schools & Orgs", prefix: "", suffix: "+" },
 ];
 
 function useCountUp(end: number, duration = 1800, inView = false) {
@@ -199,7 +199,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
           {/* Eyebrow — fades in first */}
           <p className="text-[#7ADBB8] text-xs font-bold uppercase tracking-[0.3em] mb-8"
             style={{ animation: "fadeInDown 0.7s ease 0.2s both" }}>
-            Established 2018 &nbsp;·&nbsp; Texas Regional Chapter
+            Established 2018 &nbsp;·&nbsp; Southern Regional Chapter
           </p>
 
           {/* MIST — letters clip-reveal upward, staggered */}
@@ -284,10 +284,10 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
               More than a<br />tournament.
             </h2>
             <p className="text-gray-500 text-lg leading-relaxed mb-8 max-w-md">
-              Muslim high schoolers across Texas competing, growing, and celebrating their identity — in a fully halal environment.
+              High schoolers from across the South coming together to compete, grow, and build connections that last beyond the weekend.
             </p>
             <div className="flex flex-wrap gap-3">
-              {["Halal Environment", "Ihsan", "Est. 2018"].map((tag) => (
+              {["Leadership", "Community", "Est. 2018"].map((tag) => (
                 <span key={tag} className="bg-[#EEF2F9] text-[#1B3464] text-sm font-semibold px-4 py-2 rounded-full">{tag}</span>
               ))}
             </div>
@@ -298,8 +298,8 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
               <Image src="/photo1.jpeg" alt="MIST Dallas tournament" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1B3464]/70 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
-                <div className="text-white font-bold text-2xl" style={{ fontFamily: "var(--font-syne)" }}>850+ Competitors</div>
-                <div className="text-white/60 text-sm mt-1">from 25+ Texas schools</div>
+                <div className="text-white font-bold text-2xl" style={{ fontFamily: "var(--font-syne)" }}>Hundreds of Competitors</div>
+                <div className="text-white/60 text-sm mt-1">from schools across the South</div>
               </div>
             </div>
           </FadeUp>
@@ -315,7 +315,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
             <h2 className="text-5xl md:text-7xl font-extrabold text-white leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
               This is MIST.
             </h2>
-            <p className="text-white/50 text-lg mt-4 max-w-md mx-auto">Thousands of students. One day. Pure energy.</p>
+            <p className="text-white/50 text-lg mt-4 max-w-md mx-auto">Hundreds of students. One weekend. Pure energy.</p>
           </FadeUp>
           <div className="mt-16">
             {galleryPhotos.length > 0 && <GalleryCarousel photos={galleryPhotos} dark />}
@@ -453,7 +453,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                 <Image src="/logo.png" alt="MIST Dallas" width={32} height={32} className="object-contain brightness-0 invert" />
                 <span className="font-bold text-lg" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas</span>
               </div>
-              <p className="text-white/40 text-sm leading-relaxed">Regional chapter of the Muslim Interscholastic Tournament. Serving Texas since 2013.</p>
+              <p className="text-white/40 text-sm leading-relaxed">Southern regional chapter of the Muslim Interscholastic Tournament. Open to all high schoolers. Est. 2018.</p>
             </div>
             <div>
               <h4 className="font-semibold mb-4 text-white/60 text-xs uppercase tracking-widest">Links</h4>
