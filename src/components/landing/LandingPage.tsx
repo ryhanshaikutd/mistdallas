@@ -22,7 +22,6 @@ const STATS = [
   { value: "2018", label: "Est." },
   { value: "850+", label: "Competitors" },
   { value: "25+", label: "Schools" },
-  { value: "200+", label: "Volunteers" },
 ];
 
 const CATEGORIES = [
@@ -229,7 +228,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
       {/* ── STATS ── */}
       <section className="bg-[#1B3464]">
         <div className="max-w-5xl mx-auto px-6 py-14">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
             {STATS.map((s, i) => (
               <FadeUp key={s.label} delay={i * 80} className="text-center">
                 <div className="text-5xl font-extrabold text-[#7ADBB8] mb-1" style={{ fontFamily: "var(--font-syne)" }}>{s.value}</div>
