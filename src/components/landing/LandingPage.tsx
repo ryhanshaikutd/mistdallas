@@ -186,6 +186,7 @@ interface Qualifier {
   school: string;
   category: string;
   placement: string | null;
+  mist_ids: string | null;
 }
 
 export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { qualifiers?: Qualifier[]; galleryPhotos?: string[] }) {
@@ -566,13 +567,26 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                             <div className="space-y-2">
                               {sorted.map((q, idx) => {
                                 const ps = PLACEMENT_STYLE[q.placement ?? "5th"] ?? PLACEMENT_STYLE["5th"];
+                                const ids = q.mist_ids ? q.mist_ids.split(",") : [];
                                 return (
-                                  <div key={`${q.id}-${idx}`} className="flex items-center gap-2.5">
-                                    <span className="flex-shrink-0 text-[11px] font-bold w-8 h-6 rounded flex items-center justify-center"
+                                  <div key={`${q.id}-${idx}`} className="flex items-start gap-2.5">
+                                    <span className="flex-shrink-0 text-[11px] font-bold w-8 h-6 rounded flex items-center justify-center mt-0.5"
                                       style={{ background: ps.bg, color: ps.color }}>
                                       {ps.label}
                                     </span>
-                                    <span className="text-white/75 text-sm leading-tight">{q.school}</span>
+                                    <div className="min-w-0">
+                                      <div className="text-white/75 text-sm leading-tight">{q.school}</div>
+                                      {ids.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {ids.map(mid => (
+                                            <span key={mid} className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                                              style={{ background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.35)" }}>
+                                              {mid}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 );
                               })}
