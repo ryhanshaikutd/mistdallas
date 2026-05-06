@@ -165,31 +165,66 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
       {/* ── QUALIFIERS BANNER ── */}
       {hasQualifiers && !bannerDismissed && (
         <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl"
-          style={{
-            background: "linear-gradient(135deg, #1B3464 0%, #0F2240 100%)",
-            border: "1px solid rgba(122,219,184,0.3)",
-            animation: "slideUp 0.5s cubic-bezier(0.22,1,0.36,1) 1s both",
-          }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100vw-2rem)] max-w-xl"
+          style={{ animation: "slideUp 0.6s cubic-bezier(0.22,1,0.36,1) 0.8s both" }}
         >
-          <span className="text-[#7ADBB8] text-lg">🏆</span>
-          <span className="text-white text-sm font-medium">
-            <span className="text-[#7ADBB8] font-bold">Nats qualifiers are out!</span>
-            {" "}Find out if you made it.
-          </span>
-          <Link
-            href="/nationals"
-            className="flex items-center gap-1 bg-[#7ADBB8] text-[#0F1B2D] text-xs font-bold px-3 py-1.5 rounded-full hover:bg-white transition-colors ml-1 flex-shrink-0"
+          {/* Glow backdrop */}
+          <div className="absolute inset-0 rounded-3xl blur-2xl opacity-40 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at center, #7ADBB8 0%, #1B3464 60%)" }} />
+
+          <div
+            className="relative rounded-3xl overflow-hidden"
+            style={{
+              background: "linear-gradient(145deg, #1A3A6B 0%, #0D1E3A 100%)",
+              border: "1px solid rgba(122,219,184,0.4)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(122,219,184,0.08) inset",
+              animation: "borderPulse 3s ease-in-out infinite",
+            }}
           >
-            View <ArrowRight className="w-3 h-3" />
-          </Link>
-          <button
-            onClick={() => setBannerDismissed(true)}
-            className="text-white/30 hover:text-white/70 transition-colors ml-1 flex-shrink-0"
-            aria-label="Dismiss"
-          >
-            <X className="w-4 h-4" />
-          </button>
+            {/* Shimmer line */}
+            <div className="absolute top-0 left-0 right-0 h-px"
+              style={{ background: "linear-gradient(90deg, transparent, rgba(122,219,184,0.6), transparent)" }} />
+
+            <div className="flex items-center gap-4 px-5 py-4">
+              {/* Trophy + pulse ring */}
+              <div className="relative flex-shrink-0">
+                <div className="absolute inset-0 rounded-full animate-ping opacity-20"
+                  style={{ background: "#7ADBB8", animationDuration: "2s" }} />
+                <div className="relative w-11 h-11 rounded-full flex items-center justify-center"
+                  style={{ background: "rgba(122,219,184,0.15)", border: "1px solid rgba(122,219,184,0.3)" }}>
+                  <Trophy className="w-5 h-5 text-[#7ADBB8]" />
+                </div>
+              </div>
+
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#7ADBB8] opacity-70">2026 Nationals</span>
+                  <span className="w-1 h-1 rounded-full bg-[#7ADBB8] opacity-40" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#7ADBB8] opacity-70">Just Announced</span>
+                </div>
+                <div className="text-white font-bold text-base leading-tight">Qualifiers are out. Did you make it?</div>
+              </div>
+
+              {/* CTA */}
+              <Link
+                href="/nationals"
+                className="flex-shrink-0 flex items-center gap-1.5 font-bold text-sm px-4 py-2.5 rounded-2xl transition-all duration-200 hover:scale-105"
+                style={{ background: "linear-gradient(135deg, #7ADBB8 0%, #4ECBA0 100%)", color: "#0D1E3A" }}
+              >
+                View <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              {/* Dismiss */}
+              <button
+                onClick={() => setBannerDismissed(true)}
+                className="flex-shrink-0 text-white/25 hover:text-white/60 transition-colors"
+                aria-label="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -544,6 +579,10 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
         @keyframes slideUp {
           from { opacity: 0; transform: translate(-50%, 20px); }
           to   { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes borderPulse {
+          0%, 100% { border-color: rgba(122,219,184,0.4); box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(122,219,184,0.08) inset; }
+          50%       { border-color: rgba(122,219,184,0.7); box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 24px rgba(122,219,184,0.2), 0 0 0 1px rgba(122,219,184,0.15) inset; }
         }
       `}</style>
     </div>
