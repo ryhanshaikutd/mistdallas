@@ -19,15 +19,17 @@ export async function GET(request: Request) {
 
       if (user?.email) {
         const isInternal = user.email.endsWith(`@${INTERNAL_EMAIL_DOMAIN}`);
-        // Profile is auto-created by the DB trigger.
-        // For new internal users, set a default role of 'applicant' until
-        // an admin promotes them — this is intentional for the first login.
-        // Existing users already have their role set.
         if (isInternal) {
-          // Touch the profile to make sure it exists
+          // Sync Google profile data (name + avatar) on every login
+          const meta = user.user_metadata ?? {};
+          const fullName = meta.full_name || meta.name || null;
+          const avatarUrl = meta.avatar_url || meta.picture || null;
           await supabase
             .from("profiles")
-            .upsert({ id: user.id, email: user.email }, { onConflict: "id", ignoreDuplicates: true });
+            .upsert(
+              { id: user.id, email: user.email, full_name: fullName, avatar_url: avatarUrl },
+              { onConflict: "id", ignoreDuplicates: false }
+            );
         }
       }
 
