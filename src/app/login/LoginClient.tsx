@@ -41,7 +41,9 @@ export default function LoginClient() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="MIST Dallas" width={48} height={48} className="object-contain" />
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
+              <Image src="/logo.png" alt="MIST Dallas" width={40} height={40} className="object-contain" />
+            </div>
             <span className="font-bold text-xl">MIST Dallas</span>
           </div>
         </div>

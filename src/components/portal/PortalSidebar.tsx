@@ -73,7 +73,9 @@ export default function PortalSidebar({ profile }: Props) {
       {/* Logo */}
       <div className="p-6 border-b border-white/10">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.png" alt="MIST Dallas" width={36} height={36} className="object-contain" />
+          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
+            <Image src="/logo.png" alt="MIST Dallas" width={30} height={30} className="object-contain" />
+          </div>
           <div>
             <div className="font-bold text-sm">MIST Dallas</div>
             <div className="text-white/40 text-xs">Board Portal</div>
