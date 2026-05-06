@@ -141,29 +141,74 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
           <source src="/hero.mp4" type="video/mp4" />
         </video>
 
-        {/* Dark overlay so text is legible */}
-        <div className="absolute inset-0 bg-black/55" />
-        {/* Bottom fade for smooth transition into next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#060D18] to-transparent" />
+        {/* Lighter overlay — brighter video */}
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Vignette edges */}
+        <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%)" }} />
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#060D18] to-transparent" />
 
         {/* Content */}
-        <div className="relative z-10 text-center px-6" style={{ animation: "fadeInUp 1s ease 0.2s both" }}>
-          <p className="text-[#7ADBB8] text-xs font-bold uppercase tracking-[0.3em] mb-6"
-            style={{ animation: "fadeInDown 0.8s ease both" }}>
+        <div className="relative z-10 text-center px-6">
+          {/* Eyebrow — fades in first */}
+          <p className="text-[#7ADBB8] text-xs font-bold uppercase tracking-[0.3em] mb-8"
+            style={{ animation: "fadeInDown 0.7s ease 0.2s both" }}>
             Established 2018 &nbsp;·&nbsp; Texas Regional Chapter
           </p>
-          <h1
-            className="text-8xl md:text-[11rem] font-extrabold text-white leading-none tracking-tight"
-            style={{ fontFamily: "var(--font-syne)", animation: "fadeInUp 0.9s ease 0.15s both" }}
-          >
-            MIST<br />Dallas
-          </h1>
-          <p className="mt-8 text-white/50 text-lg font-light tracking-wide"
-            style={{ animation: "fadeInUp 0.9s ease 0.3s both" }}>
+
+          {/* MIST — letters clip-reveal upward, staggered */}
+          <div className="overflow-hidden leading-none mb-1">
+            <h1
+              className="text-[clamp(5rem,18vw,14rem)] font-extrabold text-white tracking-tight block"
+              style={{ fontFamily: "var(--font-syne)" }}
+            >
+              {"MIST".split("").map((ch, i) => (
+                <span
+                  key={i}
+                  className="inline-block"
+                  style={{
+                    animation: `letterRise 0.7s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.08}s both`,
+                  }}
+                >
+                  {ch}
+                </span>
+              ))}
+            </h1>
+          </div>
+
+          {/* Dallas — same but delayed after MIST lands */}
+          <div className="overflow-hidden leading-none">
+            <h1
+              className="text-[clamp(5rem,18vw,14rem)] font-extrabold tracking-tight block"
+              style={{
+                fontFamily: "var(--font-syne)",
+                WebkitTextStroke: "2px rgba(255,255,255,0.9)",
+                color: "transparent",
+              }}
+            >
+              {"Dallas".split("").map((ch, i) => (
+                <span
+                  key={i}
+                  className="inline-block"
+                  style={{
+                    animation: `letterRise 0.7s cubic-bezier(0.22,1,0.36,1) ${0.75 + i * 0.07}s both`,
+                  }}
+                >
+                  {ch}
+                </span>
+              ))}
+            </h1>
+          </div>
+
+          {/* Tagline */}
+          <p className="mt-8 text-white/60 text-lg font-light tracking-widest uppercase"
+            style={{ animation: "fadeInUp 0.8s ease 1.4s both", letterSpacing: "0.2em" }}>
             Where faith meets excellence.
           </p>
+
+          {/* CTAs */}
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
-            style={{ animation: "fadeInUp 0.9s ease 0.45s both" }}>
+            style={{ animation: "fadeInUp 0.8s ease 1.6s both" }}>
             <Link href="/portal"
               className="flex items-center justify-center gap-2 bg-white text-[#1B3464] font-bold px-8 py-4 rounded-full hover:bg-[#7ADBB8] transition-all duration-300 hover:scale-105 text-base">
               Apply for Board <ArrowRight className="w-5 h-5" />
@@ -176,8 +221,8 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10" style={{ animation: "fadeIn 1s ease 1.2s both" }}>
-          <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/30 to-transparent" style={{ animation: "pulse 2s ease infinite" }} />
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10" style={{ animation: "fadeIn 1s ease 2s both" }}>
+          <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/40 to-transparent" style={{ animation: "pulse 2s ease infinite" }} />
         </div>
       </section>
 
@@ -411,6 +456,16 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
         @keyframes pulse {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 0.8; }
+        }
+        @keyframes letterRise {
+          from {
+            opacity: 0;
+            transform: translateY(100%) skewY(8deg);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) skewY(0deg);
+          }
         }
       `}</style>
     </div>
