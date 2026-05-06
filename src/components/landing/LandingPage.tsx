@@ -99,8 +99,8 @@ function StatItem({ end, label, prefix, suffix, delay }: { end: number; label: s
 function StatBar() {
   return (
     <section className="bg-[#1B3464]">
-      <div className="max-w-3xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-3 gap-8">
+      <div className="max-w-4xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-3 gap-20">
           {STATS.map((s, i) => (
             <StatItem key={s.label} {...s} delay={i * 120} />
           ))}
