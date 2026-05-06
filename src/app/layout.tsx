@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans } from "next/font/google";
+import { Syne, DM_Sans, Permanent_Marker } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -7,6 +7,12 @@ const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+});
+
+const permanentMarker = Permanent_Marker({
+  variable: "--font-brush",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 const dmSans = DM_Sans({
@@ -28,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${syne.variable} ${dmSans.variable} h-full antialiased`}>
+    <html lang="en" className={`${syne.variable} ${dmSans.variable} ${permanentMarker.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster richColors position="top-right" />

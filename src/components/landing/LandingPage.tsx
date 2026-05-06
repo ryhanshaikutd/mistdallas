@@ -402,8 +402,8 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#1B3464"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
                   >
                     {/* Number watermark */}
-                    <span className="absolute top-4 right-5 text-7xl font-extrabold leading-none select-none opacity-[0.08]"
-                      style={{ fontFamily: "var(--font-syne)", color: cat.color }}>
+                    <span className="absolute top-4 right-5 text-7xl leading-none select-none opacity-[0.2]"
+                      style={{ fontFamily: "var(--font-brush)", color: "white" }}>
                       0{i + 1}
                     </span>
 
@@ -426,7 +426,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                     <div className="flex flex-wrap gap-1.5">
                       {cat.events.map(ev => (
                         <span key={ev} className="text-xs font-medium px-2.5 py-1 rounded-full"
-                          style={{ color: cat.color, background: cat.color + "20", border: `1px solid ${cat.color}35` }}>
+                          style={{ color: "white", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}>
                           {ev}
                         </span>
                       ))}
