@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Profile } from "@/lib/types";
 import { ArrowRight, Sun, Moon, PanelLeft, PanelTop, Sparkles, Check } from "lucide-react";
@@ -12,6 +13,7 @@ const STEPS = ["welcome", "name", "funfact", "theme", "nav", "done"] as const;
 type Step = typeof STEPS[number];
 
 export default function OnboardingFlow({ profile }: Props) {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("welcome");
   const [preferredName, setPreferredName] = useState(profile?.full_name?.split(" ")[0] ?? "");
   const [funFact, setFunFact] = useState("");
@@ -26,16 +28,16 @@ export default function OnboardingFlow({ profile }: Props) {
   async function finish() {
     setSaving(true);
     setError(null);
-    try {
-      await completeOnboarding({
-        preferred_name: preferredName || profile?.full_name?.split(" ")[0] || "",
-        fun_fact: funFact,
-        theme,
-        nav_style: navStyle,
-      });
-      // completeOnboarding redirects on success — if we reach here, something went wrong
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    const result = await completeOnboarding({
+      preferred_name: preferredName || profile?.full_name?.split(" ")[0] || "",
+      fun_fact: funFact,
+      theme,
+      nav_style: navStyle,
+    });
+    if (result.success) {
+      router.push("/portal");
+    } else {
+      setError(result.error);
       setSaving(false);
     }
   }
