@@ -360,8 +360,25 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
       </section>
 
       {/* ── CATEGORIES ── */}
-      <section id="categories" className="py-28 px-6 bg-[#F8FAFC]">
-        <div className="max-w-6xl mx-auto">
+      <section id="categories" className="relative py-28 px-6 bg-white overflow-hidden">
+
+        {/* Watermark text */}
+        <div className="absolute inset-0 flex flex-col justify-center gap-2 pointer-events-none select-none" aria-hidden>
+          {["KNOWLEDGE · ARTS · ORATORY", "BRACKETS · SPORTS · GROUP", "COMPETE · CREATE · CONNECT"].map((line, i) => (
+            <p key={i} className="text-[clamp(2.5rem,7vw,6rem)] font-extrabold whitespace-nowrap leading-tight"
+              style={{
+                fontFamily: "var(--font-syne)",
+                color: "#1B3464",
+                opacity: 0.035,
+                transform: i % 2 === 0 ? "translateX(-2%)" : "translateX(2%)",
+                letterSpacing: "0.05em",
+              }}>
+              {line}
+            </p>
+          ))}
+        </div>
+
+        <div className="relative max-w-6xl mx-auto">
           <FadeUp className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
               <span className="text-[#2EA87A] text-xs font-bold uppercase tracking-widest">Competitions</span>
@@ -379,46 +396,37 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
               const Icon = cat.icon;
               return (
                 <FadeUp key={cat.title} delay={i * 60}>
-                  <div className="group relative p-7 h-full flex flex-col rounded-2xl bg-[#0F1B2D] hover:bg-[#152238] transition-colors duration-300 cursor-default">
-                    {/* Big number watermark */}
-                    <span
-                      className="absolute top-4 right-5 text-7xl font-extrabold leading-none select-none opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-300"
-                      style={{ fontFamily: "var(--font-syne)", color: cat.color }}
-                    >
+                  <div className="group relative p-7 h-full flex flex-col rounded-2xl transition-all duration-300 cursor-default"
+                    style={{ background: "#1B3464", boxShadow: "0 4px 24px rgba(27,52,100,0.12)" }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#243d78"; (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "#1B3464"; (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; }}
+                  >
+                    {/* Number watermark */}
+                    <span className="absolute top-4 right-5 text-7xl font-extrabold leading-none select-none opacity-[0.08]"
+                      style={{ fontFamily: "var(--font-syne)", color: cat.color }}>
                       0{i + 1}
                     </span>
 
                     {/* Icon */}
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
-                      style={{ background: cat.color + "25" }}
-                    >
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                      style={{ background: cat.color + "30" }}>
                       <Icon className="w-5 h-5" style={{ color: cat.color }} />
                     </div>
 
                     {/* Title */}
-                    <h3 className="font-bold text-white text-lg mb-2" style={{ fontFamily: "var(--font-syne)" }}>
-                      {cat.title}
-                    </h3>
+                    <h3 className="font-bold text-white text-lg mb-2" style={{ fontFamily: "var(--font-syne)" }}>{cat.title}</h3>
 
                     {/* Desc */}
-                    <p className="text-white/40 text-sm leading-relaxed mb-5 flex-1">{cat.desc}</p>
+                    <p className="text-white/45 text-sm leading-relaxed mb-5 flex-1">{cat.desc}</p>
 
                     {/* Divider */}
-                    <div className="w-8 h-px mb-4 transition-all duration-300 group-hover:w-full" style={{ background: cat.color + "80" }} />
+                    <div className="w-8 h-px mb-4 group-hover:w-full transition-all duration-500" style={{ background: cat.color }} />
 
-                    {/* Event pills */}
+                    {/* Pills */}
                     <div className="flex flex-wrap gap-1.5">
                       {cat.events.map(ev => (
-                        <span
-                          key={ev}
-                          className="text-xs font-medium px-2.5 py-1 rounded-full border"
-                          style={{
-                            color: cat.color,
-                            borderColor: cat.color + "40",
-                            background: cat.color + "15",
-                          }}
-                        >
+                        <span key={ev} className="text-xs font-medium px-2.5 py-1 rounded-full"
+                          style={{ color: cat.color, background: cat.color + "20", border: `1px solid ${cat.color}35` }}>
                           {ev}
                         </span>
                       ))}
