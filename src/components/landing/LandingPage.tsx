@@ -19,10 +19,26 @@ const NAV_LINKS = [
 ];
 
 const STATS = [
-  { value: "2018", label: "Est." },
-  { value: "850+", label: "Competitors" },
-  { value: "25+", label: "Schools" },
+  { end: 2018, label: "Est.", prefix: "", suffix: "" },
+  { end: 850,  label: "Competitors", prefix: "", suffix: "+" },
+  { end: 25,   label: "Schools", prefix: "", suffix: "+" },
 ];
+
+function useCountUp(end: number, duration = 1800, inView = false) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    let start = 0;
+    const step = end / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= end) { setCount(end); clearInterval(timer); }
+      else setCount(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [end, duration, inView]);
+  return count;
+}
 
 const CATEGORIES = [
   { icon: Swords, title: "Sports", color: "bg-[#1B3464]" },
@@ -60,6 +76,37 @@ function FadeUp({ children, delay = 0, className = "" }: { children: React.React
     >
       {children}
     </div>
+  );
+}
+
+function StatItem({ end, label, prefix, suffix, delay }: { end: number; label: string; prefix: string; suffix: string; delay: number }) {
+  const { ref, inView } = useInView(0.3);
+  const count = useCountUp(end, 1600, inView);
+  return (
+    <div ref={ref} className="text-center" style={{
+      opacity: inView ? 1 : 0,
+      transform: inView ? "translateY(0)" : "translateY(24px)",
+      transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+    }}>
+      <div className="text-5xl md:text-6xl font-extrabold text-[#7ADBB8]" style={{ fontFamily: "var(--font-syne)" }}>
+        {prefix}{count.toLocaleString()}{suffix}
+      </div>
+      <div className="text-xs text-white/40 uppercase tracking-widest font-semibold mt-2">{label}</div>
+    </div>
+  );
+}
+
+function StatBar() {
+  return (
+    <section className="bg-[#1B3464]">
+      <div className="max-w-3xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-3 gap-8">
+          {STATS.map((s, i) => (
+            <StatItem key={s.label} {...s} delay={i * 120} />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -226,18 +273,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
       </section>
 
       {/* ── STATS ── */}
-      <section className="bg-[#1B3464]">
-        <div className="max-w-5xl mx-auto px-6 py-14">
-          <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-            {STATS.map((s, i) => (
-              <FadeUp key={s.label} delay={i * 80} className="text-center">
-                <div className="text-5xl font-extrabold text-[#7ADBB8] mb-1" style={{ fontFamily: "var(--font-syne)" }}>{s.value}</div>
-                <div className="text-sm text-white/50 uppercase tracking-widest font-medium">{s.label}</div>
-              </FadeUp>
-            ))}
-          </div>
-        </div>
-      </section>
+      <StatBar />
 
       {/* ── ABOUT ── */}
       <section id="about" className="py-28 px-6">
