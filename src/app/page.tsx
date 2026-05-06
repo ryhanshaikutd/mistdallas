@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import LandingPage from "@/components/landing/LandingPage";
 
 interface Props {
@@ -15,12 +15,23 @@ export default async function Home({ searchParams }: Props) {
   }
 
   const supabase = await createClient();
-  const { data: qualifiers } = await supabase
-    .from("qualifiers")
-    .select("*")
-    .eq("qualified_for_nationals", true)
-    .order("year", { ascending: false })
-    .order("category");
+  const admin = createAdminClient();
 
-  return <LandingPage qualifiers={qualifiers ?? []} />;
+  const [{ data: qualifiers }, { data: galleryFiles }] = await Promise.all([
+    supabase
+      .from("qualifiers")
+      .select("*")
+      .eq("qualified_for_nationals", true)
+      .order("year", { ascending: false })
+      .order("category"),
+    admin.storage
+      .from("gallery")
+      .list("", { limit: 20, sortBy: { column: "created_at", order: "desc" } }),
+  ]);
+
+  const galleryPhotos = (galleryFiles ?? [])
+    .filter(f => !f.name.startsWith("."))
+    .map(f => admin.storage.from("gallery").getPublicUrl(f.name).data.publicUrl);
+
+  return <LandingPage qualifiers={qualifiers ?? []} galleryPhotos={galleryPhotos} />;
 }

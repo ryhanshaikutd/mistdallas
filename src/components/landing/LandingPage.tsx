@@ -7,6 +7,7 @@ import {
   Trophy, Users, Star, Music, BookOpen, Swords,
   Palette, Mic, Menu, X, ChevronRight, ArrowRight,
 } from "lucide-react";
+import GalleryCarousel from "./GalleryCarousel";
 
 const NAV_LINKS = [
   { label: "About", href: "#about" },
@@ -71,7 +72,7 @@ interface Qualifier {
   placement: string | null;
 }
 
-export default function LandingPage({ qualifiers = [] }: { qualifiers?: Qualifier[] }) {
+export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { qualifiers?: Qualifier[]; galleryPhotos?: string[] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -363,6 +364,9 @@ export default function LandingPage({ qualifiers = [] }: { qualifiers?: Qualifie
           </FadeUp>
         </div>
       </section>
+
+      {/* ── GALLERY CAROUSEL ── */}
+      {galleryPhotos.length > 0 && <GalleryCarousel photos={galleryPhotos} />}
 
       {/* ── CLOSING CTA ── */}
       <section className="relative h-[70vh] overflow-hidden flex items-center justify-center">
