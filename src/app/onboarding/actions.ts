@@ -15,7 +15,7 @@ export async function completeOnboarding(data: {
   if (!user) return { success: false, error: "Not authenticated." };
 
   // Use admin client so RLS can never block this write
-  const admin = await createAdminClient();
+  const admin = createAdminClient();
   const { error } = await admin
     .from("profiles")
     .update({
