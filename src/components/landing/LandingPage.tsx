@@ -80,10 +80,43 @@ const CATEGORIES = [
     icon: Trophy,
     title: "Sports",
     color: "#2E7BC4",
-    events: ["Basketball", "Soccer", "Volleyball", "Badminton", "Flag Football"],
+    events: ["Basketball", "Soccer", "Volleyball", "Flag Football"],
     desc: "Compete on the court and field in bracket-style athletic tournaments throughout the weekend.",
   },
 ];
+
+const BROAD_CATEGORIES = ["Knowledge & Quran", "Arts", "Writing & Oratory", "Brackets", "Group Projects", "Sports"] as const;
+type BroadCat = typeof BROAD_CATEGORIES[number];
+
+const EVENT_TO_BROAD: Record<string, BroadCat> = {
+  "Knowledge Test 1": "Knowledge & Quran", "Knowledge Test 2": "Knowledge & Quran",
+  "Knowledge Test 3": "Knowledge & Quran", "Knowledge Test 4": "Knowledge & Quran",
+  "Quran Memorization — Lvl 1 (Male)": "Knowledge & Quran", "Quran Memorization — Lvl 1 (Female)": "Knowledge & Quran",
+  "Quran Memorization — Lvl 2 (Male)": "Knowledge & Quran", "Quran Memorization — Lvl 2 (Female)": "Knowledge & Quran",
+  "Quran Memorization — Lvl 3 (Male)": "Knowledge & Quran", "Quran Memorization — Lvl 3 (Female)": "Knowledge & Quran",
+  "Quran Recitation (Male)": "Knowledge & Quran", "Quran Recitation (Female)": "Knowledge & Quran",
+  "2D Art": "Arts", "3D Art": "Arts", "Fashion Design": "Arts", "Digital Art": "Arts", "Photography": "Arts",
+  "Extemporaneous Essay": "Writing & Oratory", "Extemporaneous Speaking": "Writing & Oratory",
+  "Original Oratory": "Writing & Oratory", "Poetry": "Writing & Oratory",
+  "Prepared Essay": "Writing & Oratory", "Short Fiction": "Writing & Oratory", "Spoken Word": "Writing & Oratory",
+  "Debate": "Brackets", "Math Olympics": "Brackets", "MIST Quiz Bowl": "Brackets",
+  "Improv (Male)": "Brackets", "Improv (Female)": "Brackets",
+  "Business Venture": "Group Projects", "Humanitarian Service": "Group Projects",
+  "Nasheed & Rap (Male)": "Group Projects", "Nasheed & Rap (Female)": "Group Projects",
+  "Science Fair": "Group Projects", "Short Film": "Group Projects", "Social Media": "Group Projects",
+  "Basketball (Male)": "Sports", "Basketball (Female)": "Sports",
+  "Volleyball (Male)": "Sports", "Volleyball (Female)": "Sports",
+  "Soccer (Male)": "Sports", "Soccer (Female)": "Sports",
+  "Flag Football": "Sports",
+};
+
+const PLACEMENT_STYLE: Record<string, { bg: string; color: string; label: string }> = {
+  "1st": { bg: "rgba(255,215,0,0.12)", color: "#FFD700", label: "1st" },
+  "2nd": { bg: "rgba(192,192,192,0.12)", color: "#C8C8C8", label: "2nd" },
+  "3rd": { bg: "rgba(205,127,50,0.12)", color: "#CD8E4A", label: "3rd" },
+  "4th": { bg: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", label: "4th" },
+  "5th": { bg: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.45)", label: "5th" },
+};
 
 function useInView(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
@@ -158,6 +191,8 @@ interface Qualifier {
 export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { qualifiers?: Qualifier[]; galleryPhotos?: string[] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeNatCat, setActiveNatCat] = useState<BroadCat>("Knowledge & Quran");
+  const [expandedYears, setExpandedYears] = useState<number[]>([]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -448,7 +483,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
               Dallas Represents.
             </h2>
             <p className="text-white/40 mt-4 text-lg max-w-lg mx-auto">
-              These competitors earned the right to represent MIST Dallas on the national stage.
+              Every school and qualifier that earned their spot on the national stage.
             </p>
           </FadeUp>
 
@@ -459,59 +494,133 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                 <span className="text-white/40 font-medium">Nationals qualifiers will be announced after MIST Weekend.</span>
               </div>
             </FadeUp>
-          ) : (
-            <>
-              {/* Group by year */}
-              {Array.from(new Set(qualifiers.map(q => q.year))).map(year => {
-                const byYear = qualifiers.filter(q => q.year === year);
-                const byCategory = byYear.reduce<Record<string, Qualifier[]>>((acc, q) => {
-                  acc[q.category] = acc[q.category] ?? [];
-                  acc[q.category].push(q);
-                  return acc;
-                }, {});
-                return (
-                  <div key={year} className="mb-16">
-                    <FadeUp>
-                      <div className="flex items-center gap-4 mb-8">
-                        <div className="h-px flex-1 bg-white/10" />
-                        <span className="text-3xl font-extrabold text-white/20" style={{ fontFamily: "var(--font-syne)" }}>{year}</span>
-                        <div className="h-px flex-1 bg-white/10" />
-                      </div>
-                    </FadeUp>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {Object.entries(byCategory).map(([category, qualifiersInCat], i) => (
-                        <FadeUp key={category} delay={i * 60}>
-                          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#7ADBB8]/30 transition-colors duration-300">
-                            <div className="flex items-center gap-2 mb-4">
-                              <div className="w-7 h-7 rounded-lg bg-[#7ADBB8]/10 flex items-center justify-center">
-                                <Trophy className="w-3.5 h-3.5 text-[#7ADBB8]" />
-                              </div>
-                              <span className="text-xs font-bold uppercase tracking-widest text-[#7ADBB8]">{category}</span>
-                            </div>
-                            <div className="space-y-3">
-                              {qualifiersInCat.map(q => (
-                                <div key={q.id} className="flex items-start justify-between gap-2">
-                                  <div>
-                                    <div className="font-bold text-white text-sm">{q.name}</div>
-                                    <div className="text-white/30 text-xs mt-0.5">{q.school}</div>
-                                  </div>
-                                  {q.placement && (
-                                    <span className="flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-[#7ADBB8]/10 text-[#7ADBB8] border border-[#7ADBB8]/20">
-                                      {q.placement}
+          ) : (() => {
+            // Group by year, then display most recent year fully, past years collapsible
+            const years = Array.from(new Set(qualifiers.map(q => q.year))).sort((a, b) => b - a);
+            const currentYear = years[0];
+            const pastYears = years.slice(1);
+
+            function buildYearDisplay(yearQuals: Qualifier[], year: number, collapsed: boolean) {
+              const totalSlots = yearQuals.length;
+              const uniqueSchools = new Set(yearQuals.map(q => q.school)).size;
+              const uniqueEvents = new Set(yearQuals.map(q => q.category)).size;
+
+              // Group by broad cat → event → placements
+              const byCat: Record<string, Record<string, Qualifier[]>> = {};
+              for (const q of yearQuals) {
+                const broad = EVENT_TO_BROAD[q.category] ?? "Other";
+                byCat[broad] = byCat[broad] ?? {};
+                byCat[broad][q.category] = byCat[broad][q.category] ?? [];
+                byCat[broad][q.category].push(q);
+              }
+
+              const availableCats = BROAD_CATEGORIES.filter(c => byCat[c]);
+              const activeCat = availableCats.includes(activeNatCat) ? activeNatCat : availableCats[0];
+
+              return (
+                <div key={year} className="mb-10">
+                  {/* Stats strip */}
+                  <FadeUp>
+                    <div className="flex flex-wrap gap-6 justify-center mb-10">
+                      {[
+                        { val: totalSlots, label: "Qualifying Slots" },
+                        { val: uniqueSchools, label: "Schools" },
+                        { val: uniqueEvents, label: "Events" },
+                        { val: year, label: "Season" },
+                      ].map(({ val, label }) => (
+                        <div key={label} className="text-center">
+                          <div className="text-3xl font-extrabold text-[#7ADBB8]" style={{ fontFamily: "var(--font-syne)" }}>{val}</div>
+                          <div className="text-xs text-white/30 uppercase tracking-widest mt-1">{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </FadeUp>
+
+                  {/* Category tabs */}
+                  <FadeUp>
+                    <div className="flex gap-2 overflow-x-auto pb-2 mb-8 scrollbar-none" style={{ scrollbarWidth: "none" }}>
+                      {availableCats.map(cat => (
+                        <button key={cat} onClick={() => setActiveNatCat(cat)}
+                          className="flex-shrink-0 text-xs font-semibold px-4 py-2 rounded-full border transition-all duration-200"
+                          style={activeCat === cat
+                            ? { background: "#7ADBB8", color: "#0F1B2D", borderColor: "#7ADBB8" }
+                            : { background: "transparent", color: "rgba(255,255,255,0.4)", borderColor: "rgba(255,255,255,0.12)" }
+                          }>
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </FadeUp>
+
+                  {/* Event grid */}
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Object.entries(byCat[activeCat] ?? {}).map(([event, rows], i) => {
+                      const sorted = [...rows].sort((a, b) => {
+                        const order = ["1st","2nd","3rd","4th","5th"];
+                        return order.indexOf(a.placement ?? "") - order.indexOf(b.placement ?? "");
+                      });
+                      return (
+                        <FadeUp key={event} delay={i * 40}>
+                          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5 h-full hover:border-[#7ADBB8]/25 transition-colors duration-300">
+                            <div className="text-[#7ADBB8] text-xs font-bold uppercase tracking-wide mb-4">{event}</div>
+                            <div className="space-y-2">
+                              {sorted.map((q, idx) => {
+                                const ps = PLACEMENT_STYLE[q.placement ?? "5th"] ?? PLACEMENT_STYLE["5th"];
+                                return (
+                                  <div key={`${q.id}-${idx}`} className="flex items-center gap-2.5">
+                                    <span className="flex-shrink-0 text-[11px] font-bold w-8 h-6 rounded flex items-center justify-center"
+                                      style={{ background: ps.bg, color: ps.color }}>
+                                      {ps.label}
                                     </span>
-                                  )}
-                                </div>
-                              ))}
+                                    <span className="text-white/75 text-sm leading-tight">{q.school}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </FadeUp>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </>
-          )}
+                </div>
+              );
+            }
+
+            return (
+              <>
+                {buildYearDisplay(qualifiers.filter(q => q.year === currentYear), currentYear, false)}
+
+                {/* Past years accordion */}
+                {pastYears.length > 0 && (
+                  <div className="mt-16 border-t border-white/10 pt-12">
+                    <FadeUp>
+                      <h3 className="text-white/30 text-sm font-semibold uppercase tracking-widest mb-6 text-center">Past Years</h3>
+                    </FadeUp>
+                    {pastYears.map(year => {
+                      const isOpen = expandedYears.includes(year);
+                      const yearQuals = qualifiers.filter(q => q.year === year);
+                      return (
+                        <div key={year} className="mb-4">
+                          <button
+                            onClick={() => setExpandedYears(prev => isOpen ? prev.filter(y => y !== year) : [...prev, year])}
+                            className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all"
+                          >
+                            <span className="text-white/50 font-semibold" style={{ fontFamily: "var(--font-syne)" }}>{year} Season</span>
+                            <span className="text-white/30 text-sm">{isOpen ? "▲ Collapse" : "▼ Expand"}</span>
+                          </button>
+                          {isOpen && (
+                            <div className="mt-4">
+                              {buildYearDisplay(yearQuals, year, true)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </section>
 

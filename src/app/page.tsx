@@ -23,7 +23,8 @@ export default async function Home({ searchParams }: Props) {
       .select("*")
       .eq("qualified_for_nationals", true)
       .order("year", { ascending: false })
-      .order("category"),
+      .order("category")
+      .order("placement"),
     admin.storage
       .from("gallery")
       .list("", { limit: 20, sortBy: { column: "created_at", order: "desc" } }),
