@@ -360,31 +360,29 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
       </section>
 
       {/* ── CATEGORIES ── */}
-      <section id="categories" className="py-28 px-6 bg-[#060D18]">
+      <section id="categories" className="py-28 px-6 bg-[#F8FAFC]">
         <div className="max-w-6xl mx-auto">
           <FadeUp className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
-              <span className="text-[#7ADBB8] text-xs font-bold uppercase tracking-widest">Competitions</span>
-              <h2 className="text-5xl md:text-6xl font-extrabold text-white mt-4 leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
+              <span className="text-[#2EA87A] text-xs font-bold uppercase tracking-widest">Competitions</span>
+              <h2 className="text-5xl md:text-6xl font-extrabold text-[#1B3464] mt-4 leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
                 Something for<br />everyone.
               </h2>
             </div>
-            <p className="text-white/30 text-base max-w-xs md:text-right leading-relaxed">
+            <p className="text-gray-400 text-base max-w-xs md:text-right leading-relaxed">
               6 categories · 20+ events<br />Every student has a stage.
             </p>
           </FadeUp>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/6 rounded-3xl overflow-hidden border border-white/6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {CATEGORIES.map((cat, i) => {
               const Icon = cat.icon;
               return (
                 <FadeUp key={cat.title} delay={i * 60}>
-                  <div
-                    className="group relative p-7 h-full flex flex-col bg-[#060D18] hover:bg-[#0d1a2e] transition-colors duration-300 cursor-default"
-                  >
+                  <div className="group relative p-7 h-full flex flex-col rounded-2xl bg-[#0F1B2D] hover:bg-[#152238] transition-colors duration-300 cursor-default">
                     {/* Big number watermark */}
                     <span
-                      className="absolute top-4 right-5 text-7xl font-extrabold leading-none select-none transition-opacity duration-300 opacity-[0.04] group-hover:opacity-[0.08]"
+                      className="absolute top-4 right-5 text-7xl font-extrabold leading-none select-none opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-300"
                       style={{ fontFamily: "var(--font-syne)", color: cat.color }}
                     >
                       0{i + 1}
@@ -393,7 +391,7 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                     {/* Icon */}
                     <div
                       className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
-                      style={{ background: cat.color + "20" }}
+                      style={{ background: cat.color + "25" }}
                     >
                       <Icon className="w-5 h-5" style={{ color: cat.color }} />
                     </div>
@@ -404,10 +402,10 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                     </h3>
 
                     {/* Desc */}
-                    <p className="text-white/35 text-sm leading-relaxed mb-5 flex-1">{cat.desc}</p>
+                    <p className="text-white/40 text-sm leading-relaxed mb-5 flex-1">{cat.desc}</p>
 
                     {/* Divider */}
-                    <div className="w-8 h-px mb-4 transition-all duration-300 group-hover:w-full" style={{ background: cat.color + "60" }} />
+                    <div className="w-8 h-px mb-4 transition-all duration-300 group-hover:w-full" style={{ background: cat.color + "80" }} />
 
                     {/* Event pills */}
                     <div className="flex flex-wrap gap-1.5">
@@ -417,8 +415,8 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
                           className="text-xs font-medium px-2.5 py-1 rounded-full border"
                           style={{
                             color: cat.color,
-                            borderColor: cat.color + "30",
-                            background: cat.color + "0d",
+                            borderColor: cat.color + "40",
+                            background: cat.color + "15",
                           }}
                         >
                           {ev}
