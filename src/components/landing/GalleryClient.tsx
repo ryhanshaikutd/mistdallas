@@ -74,7 +74,7 @@ export default function GalleryClient({ photos }: Props) {
             </button>
 
             {/* Image */}
-            <div className="relative w-full h-full max-w-5xl max-h-[calc(100vh-200px)]">
+            <div className="relative w-full max-w-5xl" style={{ height: "calc(100vh - 260px)" }}>
               {!loaded && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
