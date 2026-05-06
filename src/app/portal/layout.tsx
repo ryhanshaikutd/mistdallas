@@ -13,7 +13,7 @@ export default async function PortalLayout({ children }: { children: React.React
 
   if (profile && !profile.onboarded) redirect("/portal/onboarding");
 
-  const theme = profile?.theme ?? "light";
+  const theme = profile?.theme ?? "dark";
   const navStyle = profile?.nav_style ?? "sidebar";
 
   return (

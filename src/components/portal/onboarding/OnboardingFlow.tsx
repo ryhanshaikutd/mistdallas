@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/lib/types";
 import { ArrowRight, Sun, Moon, PanelLeft, PanelTop, Sparkles, Check } from "lucide-react";
+import { completeOnboarding } from "@/app/portal/onboarding/actions";
 
 interface Props { profile: Profile | null }
 
@@ -13,28 +12,32 @@ const STEPS = ["welcome", "name", "funfact", "theme", "nav", "done"] as const;
 type Step = typeof STEPS[number];
 
 export default function OnboardingFlow({ profile }: Props) {
-  const router = useRouter();
-  const supabase = createClient();
   const [step, setStep] = useState<Step>("welcome");
   const [preferredName, setPreferredName] = useState(profile?.full_name?.split(" ")[0] ?? "");
   const [funFact, setFunFact] = useState("");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark"); // default dark
   const [navStyle, setNavStyle] = useState<"sidebar" | "topnav">("sidebar");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const stepIndex = STEPS.indexOf(step);
   const progress = (stepIndex / (STEPS.length - 1)) * 100;
 
   async function finish() {
     setSaving(true);
-    await supabase.from("profiles").update({
-      preferred_name: preferredName || profile?.full_name?.split(" ")[0],
-      fun_fact: funFact,
-      theme,
-      nav_style: navStyle,
-      onboarded: true,
-    }).eq("id", profile!.id);
-    router.push("/portal");
+    setError(null);
+    try {
+      await completeOnboarding({
+        preferred_name: preferredName || profile?.full_name?.split(" ")[0] || "",
+        fun_fact: funFact,
+        theme,
+        nav_style: navStyle,
+      });
+      // completeOnboarding redirects on success — if we reach here, something went wrong
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setSaving(false);
+    }
   }
 
   const next = () => {
@@ -265,6 +268,9 @@ export default function OnboardingFlow({ profile }: Props) {
               <p className="text-lg mb-10" style={{ color: theme === "dark" ? "#64748B" : "#6B7280" }}>
                 Welcome to MIST Dallas. Let&apos;s build something great.
               </p>
+              {error && (
+                <p className="text-sm text-red-400 mb-4">{error}</p>
+              )}
               <button onClick={finish} disabled={saving}
                 className="inline-flex items-center gap-2 bg-[#1B3464] text-white font-bold px-8 py-4 rounded-full hover:bg-[#2E7BC4] hover:scale-105 transition-all duration-300 disabled:opacity-60">
                 {saving ? "Setting up…" : "Enter the portal →"}
