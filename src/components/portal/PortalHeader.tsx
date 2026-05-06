@@ -16,6 +16,9 @@ const TITLES: Record<string, string> = {
 
 export default function PortalHeader({ profile }: Props) {
   const pathname = usePathname();
+  // Dashboard has its own greeting — no header needed there
+  if (pathname === "/portal") return null;
+
   const title = Object.entries(TITLES).find(([key]) =>
     key === "/portal" ? pathname === key : pathname.startsWith(key)
   )?.[1] ?? "Portal";

@@ -145,19 +145,21 @@
 
 /* ── Portal theme tokens ── */
 [data-theme="light"] {
-  --p-bg: #F0F4F8;
+  --p-bg: #EEF2F7;
   --p-card: #ffffff;
-  --p-card-hover: #F8FAFC;
+  --p-card-hover: #F5F7FA;
   --p-sidebar: #1B3464;
   --p-sidebar-hover: rgba(255,255,255,0.08);
   --p-sidebar-active: rgba(255,255,255,0.15);
-  --p-text: #111827;
-  --p-text-secondary: #374151;
-  --p-muted: #6B7280;
-  --p-border: #E5E7EB;
+  --p-text: #0F172A;
+  --p-text-secondary: #334155;
+  --p-muted: #64748B;
+  --p-border: #E2E8F0;
   --p-accent: #2E7BC4;
   --p-accent-green: #2EA87A;
   --p-header: #ffffff;
+  --p-shadow: 0 1px 3px rgba(15,23,42,0.07), 0 1px 2px rgba(15,23,42,0.04);
+  --p-shadow-md: 0 4px 16px rgba(15,23,42,0.10), 0 2px 4px rgba(15,23,42,0.06);
 }
 
 [data-theme="dark"] {
@@ -174,6 +176,8 @@
   --p-accent: #2E7BC4;
   --p-accent-green: #2EA87A;
   --p-header: #0F1B2D;
+  --p-shadow: none;
+  --p-shadow-md: 0 4px 16px rgba(0,0,0,0.4);
 }
 
 @layer utilities {
