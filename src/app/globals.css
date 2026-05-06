@@ -143,6 +143,39 @@
   }
 }
 
+/* ── Portal theme tokens ── */
+[data-theme="light"] {
+  --p-bg: #F0F4F8;
+  --p-card: #ffffff;
+  --p-card-hover: #F8FAFC;
+  --p-sidebar: #1B3464;
+  --p-sidebar-hover: rgba(255,255,255,0.08);
+  --p-sidebar-active: rgba(255,255,255,0.15);
+  --p-text: #111827;
+  --p-text-secondary: #374151;
+  --p-muted: #6B7280;
+  --p-border: #E5E7EB;
+  --p-accent: #2E7BC4;
+  --p-accent-green: #2EA87A;
+  --p-header: #ffffff;
+}
+
+[data-theme="dark"] {
+  --p-bg: #060d16;
+  --p-card: #0F1B2D;
+  --p-card-hover: #162232;
+  --p-sidebar: #070e1a;
+  --p-sidebar-hover: rgba(255,255,255,0.06);
+  --p-sidebar-active: rgba(46,123,196,0.2);
+  --p-text: #F1F5F9;
+  --p-text-secondary: #CBD5E1;
+  --p-muted: #64748B;
+  --p-border: #1e3a5f;
+  --p-accent: #2E7BC4;
+  --p-accent-green: #2EA87A;
+  --p-header: #0F1B2D;
+}
+
 @layer utilities {
   .text-gradient-mist {
     background: linear-gradient(135deg, #2E7BC4 0%, #2EA87A 100%);

@@ -39,9 +39,14 @@ export interface Profile {
   id: string
   email: string
   full_name: string
+  preferred_name: string | null
+  fun_fact: string | null
   role: UserRole
   team: Team | null
   avatar_url: string | null
+  theme: 'light' | 'dark'
+  nav_style: 'sidebar' | 'topnav'
+  onboarded: boolean
   created_at: string
 }
 
