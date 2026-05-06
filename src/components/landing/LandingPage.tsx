@@ -88,7 +88,7 @@ export default function LandingPage({ qualifiers = [] }: { qualifiers?: Qualifie
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="MIST Dallas" width={38} height={38} className={`object-contain transition-all duration-300 ${scrolled ? "" : "brightness-0 invert"}`} />
+            <Image src="/logo.png" alt="MIST Dallas" width={38} height={38} className={`object-contain transition-all duration-300 ${scrolled ? "brightness-0" : "brightness-0 invert"}`} />
             <span className={`font-bold text-lg transition-colors duration-300 ${scrolled ? "text-[#1B3464]" : "text-white"}`} style={{ fontFamily: "var(--font-syne)" }}>
               MIST Dallas
             </span>
