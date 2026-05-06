@@ -11,7 +11,7 @@ export default async function PortalLayout({ children }: { children: React.React
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-  if (profile && !profile.onboarded) redirect("/portal/onboarding");
+  if (profile && !profile.onboarded) redirect("/onboarding");
 
   const theme = profile?.theme ?? "dark";
   const navStyle = profile?.nav_style ?? "sidebar";

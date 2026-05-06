@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Profile } from "@/lib/types";
 import { ArrowRight, Sun, Moon, PanelLeft, PanelTop, Sparkles, Check } from "lucide-react";
-import { completeOnboarding } from "@/app/portal/onboarding/actions";
+import { completeOnboarding } from "@/app/onboarding/actions";
 
 interface Props { profile: Profile | null }
 
