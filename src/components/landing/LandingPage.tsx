@@ -11,7 +11,8 @@ import {
 const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Categories", href: "#categories" },
-  { label: "Join", href: "#join" },
+  { label: "Nationals", href: "#nationals" },
+  { label: "Gallery", href: "/gallery" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -61,7 +62,16 @@ function FadeUp({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
-export default function LandingPage() {
+interface Qualifier {
+  id: string;
+  year: number;
+  name: string;
+  school: string;
+  category: string;
+  placement: string | null;
+}
+
+export default function LandingPage({ qualifiers = [] }: { qualifiers?: Qualifier[] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -245,6 +255,82 @@ export default function LandingPage() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* ── NATIONALS QUALIFIERS ── */}
+      <section id="nationals" className="py-28 px-6 bg-[#0F1B2D]">
+        <div className="max-w-6xl mx-auto">
+          <FadeUp className="mb-14 text-center">
+            <span className="text-[#7ADBB8] text-xs font-bold uppercase tracking-widest">Nationals</span>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-white mt-4 leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
+              Dallas Represents.
+            </h2>
+            <p className="text-white/40 mt-4 text-lg max-w-lg mx-auto">
+              These competitors earned the right to represent MIST Dallas on the national stage.
+            </p>
+          </FadeUp>
+
+          {qualifiers.length === 0 ? (
+            <FadeUp className="text-center py-16">
+              <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-8 py-6">
+                <Trophy className="w-6 h-6 text-[#7ADBB8]" />
+                <span className="text-white/40 font-medium">Nationals qualifiers will be announced after MIST Weekend.</span>
+              </div>
+            </FadeUp>
+          ) : (
+            <>
+              {/* Group by year */}
+              {Array.from(new Set(qualifiers.map(q => q.year))).map(year => {
+                const byYear = qualifiers.filter(q => q.year === year);
+                const byCategory = byYear.reduce<Record<string, Qualifier[]>>((acc, q) => {
+                  acc[q.category] = acc[q.category] ?? [];
+                  acc[q.category].push(q);
+                  return acc;
+                }, {});
+                return (
+                  <div key={year} className="mb-16">
+                    <FadeUp>
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="h-px flex-1 bg-white/10" />
+                        <span className="text-3xl font-extrabold text-white/20" style={{ fontFamily: "var(--font-syne)" }}>{year}</span>
+                        <div className="h-px flex-1 bg-white/10" />
+                      </div>
+                    </FadeUp>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {Object.entries(byCategory).map(([category, qualifiersInCat], i) => (
+                        <FadeUp key={category} delay={i * 60}>
+                          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#7ADBB8]/30 transition-colors duration-300">
+                            <div className="flex items-center gap-2 mb-4">
+                              <div className="w-7 h-7 rounded-lg bg-[#7ADBB8]/10 flex items-center justify-center">
+                                <Trophy className="w-3.5 h-3.5 text-[#7ADBB8]" />
+                              </div>
+                              <span className="text-xs font-bold uppercase tracking-widest text-[#7ADBB8]">{category}</span>
+                            </div>
+                            <div className="space-y-3">
+                              {qualifiersInCat.map(q => (
+                                <div key={q.id} className="flex items-start justify-between gap-2">
+                                  <div>
+                                    <div className="font-bold text-white text-sm">{q.name}</div>
+                                    <div className="text-white/30 text-xs mt-0.5">{q.school}</div>
+                                  </div>
+                                  {q.placement && (
+                                    <span className="flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-full bg-[#7ADBB8]/10 text-[#7ADBB8] border border-[#7ADBB8]/20">
+                                      {q.placement}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </FadeUp>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </div>
       </section>
 

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import LandingPage from "@/components/landing/LandingPage";
 
 interface Props {
@@ -8,12 +9,18 @@ interface Props {
 export default async function Home({ searchParams }: Props) {
   const { code, next } = await searchParams;
 
-  // Supabase sometimes sends the OAuth code to the Site URL instead of /auth/callback.
-  // Forward it to the real handler so the session gets created properly.
   if (code) {
     const target = next ? `/auth/callback?code=${code}&next=${next}` : `/auth/callback?code=${code}`;
     redirect(target);
   }
 
-  return <LandingPage />;
+  const supabase = await createClient();
+  const { data: qualifiers } = await supabase
+    .from("qualifiers")
+    .select("*")
+    .eq("qualified_for_nationals", true)
+    .order("year", { ascending: false })
+    .order("category");
+
+  return <LandingPage qualifiers={qualifiers ?? []} />;
 }
