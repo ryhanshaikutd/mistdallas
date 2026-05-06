@@ -360,41 +360,67 @@ export default function LandingPage({ qualifiers = [], galleryPhotos = [] }: { q
       </section>
 
       {/* ── CATEGORIES ── */}
-      <section id="categories" className="py-28 px-6 bg-white">
+      <section id="categories" className="py-28 px-6 bg-[#060D18]">
         <div className="max-w-6xl mx-auto">
-          <FadeUp className="mb-16">
-            <span className="text-[#2EA87A] text-xs font-bold uppercase tracking-widest">Competitions</span>
-            <h2 className="text-5xl md:text-6xl font-extrabold text-[#1B3464] mt-4 mb-4" style={{ fontFamily: "var(--font-syne)" }}>
-              Something for<br />everyone.
-            </h2>
-            <p className="text-gray-400 text-lg max-w-lg">Six categories, 20+ individual events — every student has a stage.</p>
+          <FadeUp className="mb-16 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div>
+              <span className="text-[#7ADBB8] text-xs font-bold uppercase tracking-widest">Competitions</span>
+              <h2 className="text-5xl md:text-6xl font-extrabold text-white mt-4 leading-tight" style={{ fontFamily: "var(--font-syne)" }}>
+                Something for<br />everyone.
+              </h2>
+            </div>
+            <p className="text-white/30 text-base max-w-xs md:text-right leading-relaxed">
+              6 categories · 20+ events<br />Every student has a stage.
+            </p>
           </FadeUp>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/6 rounded-3xl overflow-hidden border border-white/6">
             {CATEGORIES.map((cat, i) => {
               const Icon = cat.icon;
               return (
-                <FadeUp key={cat.title} delay={i * 70}>
-                  <div className="group rounded-2xl border border-gray-100 p-6 hover:border-transparent hover:shadow-xl transition-all duration-300 cursor-default h-full flex flex-col"
-                    style={{ background: "white" }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = cat.color + "08"}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "white"}
+                <FadeUp key={cat.title} delay={i * 60}>
+                  <div
+                    className="group relative p-7 h-full flex flex-col bg-[#060D18] hover:bg-[#0d1a2e] transition-colors duration-300 cursor-default"
                   >
+                    {/* Big number watermark */}
+                    <span
+                      className="absolute top-4 right-5 text-7xl font-extrabold leading-none select-none transition-opacity duration-300 opacity-[0.04] group-hover:opacity-[0.08]"
+                      style={{ fontFamily: "var(--font-syne)", color: cat.color }}
+                    >
+                      0{i + 1}
+                    </span>
+
                     {/* Icon */}
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110"
-                      style={{ background: cat.color + "15" }}>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
+                      style={{ background: cat.color + "20" }}
+                    >
                       <Icon className="w-5 h-5" style={{ color: cat.color }} />
                     </div>
 
-                    {/* Title & desc */}
-                    <h3 className="font-bold text-[#1B3464] text-base mb-1.5" style={{ fontFamily: "var(--font-syne)" }}>{cat.title}</h3>
-                    <p className="text-gray-400 text-sm leading-relaxed mb-4 flex-1">{cat.desc}</p>
+                    {/* Title */}
+                    <h3 className="font-bold text-white text-lg mb-2" style={{ fontFamily: "var(--font-syne)" }}>
+                      {cat.title}
+                    </h3>
 
-                    {/* Event tags */}
+                    {/* Desc */}
+                    <p className="text-white/35 text-sm leading-relaxed mb-5 flex-1">{cat.desc}</p>
+
+                    {/* Divider */}
+                    <div className="w-8 h-px mb-4 transition-all duration-300 group-hover:w-full" style={{ background: cat.color + "60" }} />
+
+                    {/* Event pills */}
                     <div className="flex flex-wrap gap-1.5">
                       {cat.events.map(ev => (
-                        <span key={ev} className="text-xs font-medium px-2.5 py-1 rounded-full"
-                          style={{ background: cat.color + "12", color: cat.color }}>
+                        <span
+                          key={ev}
+                          className="text-xs font-medium px-2.5 py-1 rounded-full border"
+                          style={{
+                            color: cat.color,
+                            borderColor: cat.color + "30",
+                            background: cat.color + "0d",
+                          }}
+                        >
                           {ev}
                         </span>
                       ))}
