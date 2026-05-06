@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import PortalSidebar from "@/components/portal/PortalSidebar";
 import PortalTopNav from "@/components/portal/PortalTopNav";
 import PortalHeader from "@/components/portal/PortalHeader";
@@ -9,7 +9,9 @@ export default async function PortalLayout({ children }: { children: React.React
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  // Use admin client so RLS never blocks the profile read
+  const admin = await createAdminClient();
+  const { data: profile } = await admin.from("profiles").select("*").eq("id", user.id).single();
 
   if (profile && !profile.onboarded) redirect("/onboarding");
 
