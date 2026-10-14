@@ -234,6 +234,7 @@ export default function InterviewsClient({ cycle, slots: initialSlots, bookings:
                     </div>
                     <button
                       onClick={() => deleteSlot(slot.id)}
+                      aria-label={`Delete slot on ${format(parseISO(slot.starts_at), "MMMM d 'at' h:mm a")}`}
                       disabled={deleting === slot.id}
                       className="p-2 rounded-lg transition-colors"
                       style={{ color: "var(--p-muted)" }}

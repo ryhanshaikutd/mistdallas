@@ -139,6 +139,7 @@ function YearBlock({ year, qualifiers, activeCat, onCatChange, catKey }: YearBlo
             <button
               key={c}
               onClick={() => onCatChange(c)}
+              aria-pressed={cat === c}
               className="flex-shrink-0 text-xs font-semibold px-5 py-2.5 rounded-full transition-all duration-200"
               style={cat === c
                 ? {
@@ -314,7 +315,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
               {/* Past years accordion */}
               {pastYears.length > 0 && (
                 <div className="mt-20 border-t border-gray-100 pt-14">
-                  <h3 className="text-gray-300 text-sm font-semibold uppercase tracking-widest mb-6 text-center">Past Years</h3>
+                  <h2 className="text-gray-500 text-sm font-semibold uppercase tracking-widest mb-6 text-center">Past Years</h2>
                   {pastYears.map(year => {
                     const isOpen = expandedYears.includes(year);
                     return (
@@ -323,10 +324,11 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
                           onClick={() => setExpandedYears(prev =>
                             isOpen ? prev.filter(y => y !== year) : [...prev, year]
                           )}
+                          aria-expanded={isOpen}
                           className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white border border-gray-100 hover:border-[#1B3464]/20 hover:shadow-sm transition-all duration-200"
                         >
                           <span className="text-gray-500 font-semibold" style={{ fontFamily: "var(--font-syne)" }}>{year} Season</span>
-                          <span className="text-gray-300 text-sm">{isOpen ? "▲" : "▼"}</span>
+                          <span className="text-gray-500 text-sm" aria-hidden="true">{isOpen ? "▲" : "▼"}</span>
                         </button>
                         {isOpen && <div className="mt-4"><YearBlock year={year} {...yearBlockProps} /></div>}
                       </div>

@@ -199,8 +199,8 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
                 </div>
                 <button
                   onClick={() => setBannerDismissed(true)}
-                  className="text-white/25 hover:text-white/60 transition-colors"
-                  aria-label="Dismiss"
+                  className="text-white/50 hover:text-white transition-colors"
+                  aria-label="Dismiss announcement"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -250,14 +250,15 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
               className={`hidden md:flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-300 ${scrolled ? "bg-[#1B3464] text-white hover:bg-[#2E7BC4]" : "bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25"}`}>
               Board Portal <ChevronRight className="w-4 h-4" />
             </Link>
-            <button className={`md:hidden p-2 transition-colors ${scrolled ? "text-gray-600" : "text-white"}`} onClick={() => setMobileOpen(!mobileOpen)}>
+            <button className={`md:hidden p-2 transition-colors ${scrolled ? "text-gray-600" : "text-white"}`} onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"} aria-expanded={mobileOpen} aria-controls="mobile-nav">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-4">
+          <div id="mobile-nav" className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-4">
             {NAV_LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>{l.label}</Link>
             ))}
@@ -270,13 +271,18 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#060D18]">
-        {/* Background video */}
+        {/* Still frame: paints immediately (LCP) and is what reduced-motion users see */}
+        <Image src="/hero.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+        {/* Background video (hidden under prefers-reduced-motion, see globals.css) */}
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
+          preload="metadata"
+          poster="/hero.jpg"
+          aria-hidden="true"
+          className="hero-video absolute inset-0 w-full h-full object-cover"
         >
           <source src="/hero.mp4" type="video/mp4" />
         </video>
@@ -532,7 +538,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
               <ul className="space-y-2">
                 {[...NAV_LINKS, { label: "Board Portal", href: "/portal" }].map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-white/40 hover:text-[#7ADBB8] text-sm transition-colors">{l.label}</Link>
+                    <Link href={l.href} className="text-white/60 hover:text-[#7ADBB8] text-sm transition-colors">{l.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -543,8 +549,8 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-white/20 text-sm">© {new Date().getFullYear()} MIST Dallas.</p>
-            <p className="text-white/20 text-sm">A regional chapter of MIST National</p>
+            <p className="text-white/50 text-sm">© {new Date().getFullYear()} MIST Dallas.</p>
+            <p className="text-white/50 text-sm">A regional chapter of MIST National</p>
           </div>
         </div>
       </footer>

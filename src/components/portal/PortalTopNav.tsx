@@ -65,6 +65,7 @@ export default function PortalTopNav({ profile }: Props) {
 
       <div className="relative">
         <button onClick={() => setMenuOpen(!menuOpen)}
+          aria-haspopup="menu" aria-expanded={menuOpen}
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all duration-150"
           style={{ background: menuOpen ? "var(--p-border)" : "transparent" }}>
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#2E7BC4] to-[#2EA87A] flex items-center justify-center text-xs font-bold text-white">

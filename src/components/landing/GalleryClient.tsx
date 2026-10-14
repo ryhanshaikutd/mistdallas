@@ -43,7 +43,8 @@ export default function GalleryClient({ photos }: Props) {
         </div>
         <button
           onClick={() => setView(v => v === "single" ? "grid" : "single")}
-          className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors"
+          className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors"
+          aria-label={view === "single" ? "Switch to grid view" : "Switch to slideshow view"}
         >
           <Grid2x2 className="w-4 h-4" />
           <span className="hidden sm:inline">{view === "single" ? "Grid" : "Slideshow"}</span>
@@ -68,6 +69,7 @@ export default function GalleryClient({ photos }: Props) {
             {/* Prev */}
             <button
               onClick={prev}
+              aria-label="Previous photo"
               className="absolute left-4 md:left-8 z-10 w-11 h-11 rounded-full bg-white/8 hover:bg-white/16 border border-white/10 flex items-center justify-center transition-all"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -95,6 +97,7 @@ export default function GalleryClient({ photos }: Props) {
             {/* Next */}
             <button
               onClick={next}
+              aria-label="Next photo"
               className="absolute right-4 md:right-8 z-10 w-11 h-11 rounded-full bg-white/8 hover:bg-white/16 border border-white/10 flex items-center justify-center transition-all"
             >
               <ChevronRight className="w-5 h-5" />
@@ -104,7 +107,7 @@ export default function GalleryClient({ photos }: Props) {
           {/* Bottom strip */}
           <div className="flex-shrink-0 pb-6 px-6 flex flex-col items-center gap-4">
             {/* Counter */}
-            <span className="text-white/30 text-sm tabular-nums">
+            <span className="text-white/60 text-sm tabular-nums" aria-live="polite">
               {current + 1} <span className="text-white/15">/</span> {photos.length}
             </span>
 
@@ -114,6 +117,8 @@ export default function GalleryClient({ photos }: Props) {
                 <button
                   key={p.name}
                   onClick={() => setCurrent(i)}
+                  aria-label={`View photo ${i + 1} of ${photos.length}`}
+                  aria-current={i === current ? "true" : undefined}
                   className="relative flex-shrink-0 rounded-lg overflow-hidden transition-all duration-200"
                   style={{
                     width: 52,
@@ -138,6 +143,7 @@ export default function GalleryClient({ photos }: Props) {
                 <button
                   key={photo.name}
                   onClick={() => { setCurrent(i); setView("single"); }}
+                  aria-label={`Open photo ${i + 1} of ${photos.length}`}
                   className="relative w-full break-inside-avoid rounded-xl overflow-hidden group block"
                   style={{ aspectRatio: i % 5 === 0 ? "3/4" : i % 3 === 0 ? "4/3" : "1/1" }}
                 >

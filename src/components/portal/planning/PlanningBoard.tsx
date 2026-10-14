@@ -115,7 +115,7 @@ export default function PlanningBoard({ profile, tasks: initialTasks, milestones
       <div style={{ background: "var(--p-card)", borderColor: overdue ? "#fca5a5" : "var(--p-border)" }} className="border rounded-xl p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <p style={{ color: "var(--p-text)" }} className="text-sm font-semibold leading-tight">{task.title}</p>
-          <button onClick={() => deleteTask(task.id)} style={{ color: "var(--p-muted)" }} className="hover:text-red-400 transition-colors flex-shrink-0">
+          <button onClick={() => deleteTask(task.id)} aria-label={`Delete task: ${task.title}`} style={{ color: "var(--p-muted)" }} className="hover:text-red-400 transition-colors flex-shrink-0">
             <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -149,6 +149,8 @@ export default function PlanningBoard({ profile, tasks: initialTasks, milestones
               <button
                 key={col.key}
                 onClick={() => updateTaskStatus(task.id, col.key)}
+                aria-label={`Mark as ${col.label}`}
+                aria-pressed={task.status === col.key}
                 style={task.status === col.key
                   ? { background: "var(--p-accent)" + "20", color: "var(--p-accent)" }
                   : { color: "var(--p-muted)" }}
@@ -401,7 +403,7 @@ export default function PlanningBoard({ profile, tasks: initialTasks, milestones
                         );
                       })}
                     </div>
-                    <button onClick={() => deleteTask(task.id)} className="transition-colors"
+                    <button onClick={() => deleteTask(task.id)} aria-label={`Delete task: ${task.title}`} className="transition-colors"
                       style={{ color: "var(--p-muted)" }}
                       onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "#EF4444"}
                       onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--p-muted)"}>

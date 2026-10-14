@@ -77,7 +77,7 @@ function WeekView({ tasks, milestones }: { tasks: Task[]; milestones: Milestone[
           {format(weekStart, "MMM d")} — {format(days[6], "MMM d, yyyy")}
         </h3>
         <div className="flex items-center gap-1">
-          <button onClick={() => setWeekOffset(w => w - 1)} className="p-1.5 rounded-lg transition-colors"
+          <button onClick={() => setWeekOffset(w => w - 1)} aria-label="Previous week" className="p-1.5 rounded-lg transition-colors"
             style={{ color: "var(--p-muted)" }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--p-card-hover)"}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
@@ -89,7 +89,7 @@ function WeekView({ tasks, milestones }: { tasks: Task[]; milestones: Milestone[
             style={{ color: "var(--p-accent)", background: isCurrentWeek ? "var(--p-accent)" + "15" : "transparent" }}>
             Today
           </button>
-          <button onClick={() => setWeekOffset(w => w + 1)} className="p-1.5 rounded-lg transition-colors"
+          <button onClick={() => setWeekOffset(w => w + 1)} aria-label="Next week" className="p-1.5 rounded-lg transition-colors"
             style={{ color: "var(--p-muted)" }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--p-card-hover)"}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
