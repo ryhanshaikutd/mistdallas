@@ -8,10 +8,10 @@ import { Globe, Star } from "lucide-react";
 
 export default function LoginClient() {
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
 
   async function signInWithGoogle() {
     setLoading(true);
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {

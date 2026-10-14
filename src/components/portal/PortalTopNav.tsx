@@ -27,14 +27,13 @@ function canSee(roles: string[], role?: string) {
 export default function PortalTopNav({ profile }: Props) {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const visible = NAV.filter(n => canSee(n.roles, profile?.role));
   const displayName = profile?.preferred_name || profile?.full_name?.split(" ")[0] || "You";
   const initial = displayName.charAt(0).toUpperCase();
 
   async function signOut() {
-    await supabase.auth.signOut();
+    await createClient().auth.signOut();
     router.push("/login");
   }
 

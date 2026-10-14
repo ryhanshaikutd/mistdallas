@@ -297,8 +297,9 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
           </p>
 
           {/* MIST — letters clip-reveal upward, staggered */}
-          <div className="overflow-hidden leading-none mb-1">
-            <h1
+          <h1 aria-label="MIST Dallas">
+          <span aria-hidden="true" className="block overflow-hidden leading-none mb-1">
+            <span
               className="text-[clamp(5rem,18vw,14rem)] font-extrabold text-white tracking-tight block"
               style={{ fontFamily: "var(--font-syne)" }}
             >
@@ -313,12 +314,12 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
                   {ch}
                 </span>
               ))}
-            </h1>
-          </div>
+            </span>
+          </span>
 
           {/* Dallas — same but delayed after MIST lands */}
-          <div className="overflow-hidden leading-none">
-            <h1
+          <span aria-hidden="true" className="block overflow-hidden leading-none">
+            <span
               className="text-[clamp(5rem,18vw,14rem)] font-extrabold tracking-tight block"
               style={{
                 fontFamily: "var(--font-syne)",
@@ -337,8 +338,9 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
                   {ch}
                 </span>
               ))}
-            </h1>
-          </div>
+            </span>
+          </span>
+          </h1>
 
           {/* Tagline */}
           <p className="mt-8 text-white/60 text-lg font-light tracking-widest uppercase"
