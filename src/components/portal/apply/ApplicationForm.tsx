@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
+import { submitApplication } from "@/app/portal/apply/actions";
 import type { Position, Profile } from "@/lib/types";
 import { TEAM_LABELS, TIME_COMMITMENT_OPTIONS } from "@/lib/constants";
 import { CheckCircle2, Lock, ChevronDown, ChevronUp, Star, ArrowRight } from "lucide-react";
@@ -42,7 +42,6 @@ const inputStyle = {
 
 export default function ApplicationForm({ profile, positions, cycle, existingApplication, isInternal }: Props) {
   const router = useRouter();
-  const supabase = createClient();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
@@ -97,30 +96,10 @@ export default function ApplicationForm({ profile, positions, cycle, existingApp
     if (rankedPositions.length === 0) { toast.error("Please rank at least one position."); return; }
     setSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !cycle) throw new Error("Not authenticated or no active cycle");
-      const { data: app, error: appErr } = await supabase.from("applications").insert({
-        cycle_id: cycle.id, applicant_id: user.id, applicant_email: user.email!,
-        applicant_name: form.full_name, gender: form.gender,
-        still_in_school: form.still_in_school === "yes", is_internal: isInternal,
-        current_position_id: isInternal && form.current_position_id ? form.current_position_id : null,
-        wants_position_change: isInternal ? form.wants_position_change === "change" : null,
-        expected_time_commitment: form.expected_time_commitment,
-        one_change_essay: form.one_change_essay, fell_short_essay: form.fell_short_essay,
-        why_mist: !isInternal ? form.why_mist : null,
-        relevant_experience: !isInternal ? form.relevant_experience : null,
-        ...commitments,
-      }).select().single();
-      if (appErr) throw appErr;
-      const rankPayload = rankings
-        .map((posId, idx) => posId ? { application_id: app.id, position_id: posId, rank: idx + 1 } : null)
-        .filter((x): x is { application_id: string; position_id: string; rank: number } => x !== null);
-      const { error: rankErr } = await supabase.from("application_rankings").insert(rankPayload);
-      if (rankErr) throw rankErr;
+      const result = await submitApplication({ ...form, commitments, rankings });
+      if (!result.success) { toast.error(result.error); return; }
       toast.success("Application submitted! You'll hear back soon, inshallah. 🤲");
       router.push("/portal");
-    } catch (err: unknown) {
-      toast.error((err as Error).message ?? "Something went wrong.");
     } finally {
       setSubmitting(false);
     }
