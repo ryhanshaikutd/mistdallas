@@ -230,7 +230,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="MIST Dallas" width={38} height={38} className={`object-contain transition-all duration-300 ${scrolled ? "brightness-0" : "brightness-0 invert"}`} />
+            <Image src="/logo.png" alt="MIST Dallas" width={38} height={40} className={`object-contain transition-all duration-300 ${scrolled ? "brightness-0" : "brightness-0 invert"}`} />
             <span className={`font-bold text-lg transition-colors duration-300 ${scrolled ? "text-[#1B3464]" : "text-white"}`} style={{ fontFamily: "var(--font-syne)" }}>
               MIST Dallas
             </span>
@@ -397,7 +397,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
           <FadeUp delay={150}>
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl group">
-              <Image src="/about.jpg" alt="MIST Dallas tournament" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Image src="/about.jpg" alt="MIST Dallas tournament" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1B3464]/70 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="text-white font-bold text-2xl" style={{ fontFamily: "var(--font-syne)" }}>Hundreds of Competitors</div>
@@ -410,7 +410,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
       {/* ── THIS IS MIST + GALLERY ── */}
       <section className="relative overflow-hidden bg-[#060D18]">
-        <Image src="/photo2.jpeg" alt="MIST Dallas crowd" fill className="object-cover object-center" />
+        <Image src="/photo2.jpeg" alt="" fill sizes="100vw" className="object-cover object-center" />
         <div className="absolute inset-0 bg-[#0F2240]/80" />
         <div className="relative z-10 pt-24 pb-0 text-center px-6">
           <FadeUp>
@@ -507,7 +507,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
       {/* ── CLOSING CTA ── */}
       <section className="relative h-[70vh] overflow-hidden flex items-center justify-center">
-        <Image src="/photo3.jpeg" alt="MIST Dallas closing ceremony" fill className="object-cover" />
+        <Image src="/photo3.jpeg" alt="" fill sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#0F2240]/80" />
         <FadeUp className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[#7ADBB8] text-xs font-semibold px-4 py-1.5 rounded-full mb-8">
@@ -528,7 +528,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
           <div className="grid md:grid-cols-3 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <Image src="/logo.png" alt="MIST Dallas" width={32} height={32} className="object-contain brightness-0 invert" />
+                <Image src="/logo.png" alt="MIST Dallas" width={32} height={34} className="object-contain brightness-0 invert" />
                 <span className="font-bold text-lg" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas</span>
               </div>
               <p className="text-white/40 text-sm leading-relaxed">Southern regional chapter of the Muslim Interscholastic Tournament. Open to all high schoolers. Est. 2018.</p>

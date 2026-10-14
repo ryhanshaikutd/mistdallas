@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${syne.variable} ${dmSans.variable} ${permanentMarker.variable} h-full antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`${syne.variable} ${dmSans.variable} ${permanentMarker.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster richColors position="top-right" />

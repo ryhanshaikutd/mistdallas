@@ -38,7 +38,7 @@ export default function GalleryClient({ photos }: Props) {
           <ArrowLeft className="w-4 h-4" /> Back
         </Link>
         <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="MIST Dallas" width={24} height={24} className="object-contain brightness-0 invert opacity-60" />
+          <Image src="/logo.png" alt="MIST Dallas" width={24} height={25} className="object-contain brightness-0 invert opacity-60" />
           <span className="font-bold text-sm text-white/60" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas Gallery</span>
         </div>
         <button

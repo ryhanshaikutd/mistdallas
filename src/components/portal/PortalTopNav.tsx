@@ -32,7 +32,7 @@ export default function PortalTopNav({ profile }: Props) {
       fontFamily: "var(--font-dm-sans)",
     }}>
       <Link href="/" className="flex items-center gap-2 mr-2 flex-shrink-0">
-        <Image src="/logo.png" alt="MIST Dallas" width={26} height={26} className="object-contain" style={{ filter: profile?.theme === "light" ? "none" : "brightness(0) invert(1)" }} />
+        <Image src="/logo.png" alt="MIST Dallas" width={26} height={27} className="object-contain" style={{ filter: profile?.theme === "light" ? "none" : "brightness(0) invert(1)" }} />
       </Link>
 
       <nav className="flex items-center gap-1 flex-1">

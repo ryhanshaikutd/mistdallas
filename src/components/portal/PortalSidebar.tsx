@@ -32,7 +32,7 @@ export default function PortalSidebar({ profile }: Props) {
       {/* Logo */}
       <div className="px-5 py-5 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
         <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo.png" alt="MIST Dallas" width={30} height={30} className="object-contain brightness-0 invert opacity-90" />
+          <Image src="/logo.png" alt="MIST Dallas" width={30} height={31} className="object-contain brightness-0 invert opacity-90" />
           <span className="font-bold text-sm text-white" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas</span>
         </Link>
       </div>

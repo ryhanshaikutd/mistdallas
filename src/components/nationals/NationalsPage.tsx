@@ -268,7 +268,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="MIST Dallas" width={24} height={24} className="object-contain opacity-60" />
+            <Image src="/logo.png" alt="MIST Dallas" width={24} height={25} className="object-contain opacity-60" />
             <span className="font-bold text-sm text-gray-400" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas · Nationals</span>
           </div>
           <div className="w-16" />
