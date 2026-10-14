@@ -11,7 +11,10 @@ interface Props { photos: Photo[] }
 export default function GalleryClient({ photos }: Props) {
   const [current, setCurrent] = useState(0);
   const [view, setView] = useState<"single" | "grid">("single");
-  const [loaded, setLoaded] = useState(false);
+  // Index of the photo whose full-size image has finished loading. Deriving
+  // `loaded` from it avoids resetting state in an effect on every change.
+  const [loadedIndex, setLoadedIndex] = useState<number | null>(null);
+  const loaded = loadedIndex === current;
 
   const prev = useCallback(() => setCurrent(i => (i === 0 ? photos.length - 1 : i - 1)), [photos.length]);
   const next = useCallback(() => setCurrent(i => (i === photos.length - 1 ? 0 : i + 1)), [photos.length]);
@@ -26,9 +29,6 @@ export default function GalleryClient({ photos }: Props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [prev, next, view]);
-
-  // Reset loaded state on photo change
-  useEffect(() => { setLoaded(false); }, [current]);
 
   return (
     <div className="min-h-screen bg-[#060D18] text-white flex flex-col">
@@ -88,7 +88,7 @@ export default function GalleryClient({ photos }: Props) {
                 className={`object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
                 sizes="(max-width: 1024px) 100vw, 80vw"
                 priority
-                onLoad={() => setLoaded(true)}
+                onLoad={() => setLoadedIndex(current)}
               />
             </div>
 

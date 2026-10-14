@@ -7,7 +7,7 @@ import type { Profile, Task, Milestone, Team } from "@/lib/types";
 import { TEAM_LABELS, AD_TEAMS } from "@/lib/constants";
 import {
   Plus, CheckCircle2, Circle, Clock, AlertCircle,
-  ChevronDown, Calendar, Flag, Trash2, Edit3,
+  Calendar, Flag, Trash2,
 } from "lucide-react";
 import { format, parseISO, isPast } from "date-fns";
 

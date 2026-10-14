@@ -36,7 +36,22 @@ const STATUS_COLORS: Record<string, string> = {
 
 const CHART_COLORS = ["#1B3464", "#2E7BC4", "#90C8EA", "#1A6B3C", "#2EA87A", "#7ADBB8"];
 
-export default function InsightsDashboard({ profile, applications, tasks, attendance: initialAttendance, isLeadership }: Props) {
+function StatCard({ icon: Icon, label, value, sub, color }: {
+  icon: React.ElementType; label: string; value: string | number; sub?: string; color: string;
+}) {
+  return (
+    <div className="rounded-2xl border p-5" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${color}`}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <div className="text-2xl font-bold" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>{value}</div>
+      <div className="text-sm mt-0.5" style={{ color: "var(--p-text-secondary)" }}>{label}</div>
+      {sub && <div className="text-xs mt-1" style={{ color: "var(--p-muted)" }}>{sub}</div>}
+    </div>
+  );
+}
+
+export default function InsightsDashboard({ applications, tasks, attendance: initialAttendance, isLeadership }: Props) {
   const supabase = createClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [attendance, setAttendance] = useState(initialAttendance);
@@ -141,19 +156,6 @@ export default function InsightsDashboard({ profile, applications, tasks, attend
       },
     });
   }
-
-  const StatCard = ({ icon: Icon, label, value, sub, color }: {
-    icon: React.ElementType; label: string; value: string | number; sub?: string; color: string;
-  }) => (
-    <div className="rounded-2xl border p-5" style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: color }}>
-        <Icon className="w-5 h-5 text-white" />
-      </div>
-      <div className="text-2xl font-bold" style={{ color: "var(--p-text)", fontFamily: "var(--font-syne)" }}>{value}</div>
-      <div className="text-sm mt-0.5" style={{ color: "var(--p-text-secondary)" }}>{label}</div>
-      {sub && <div className="text-xs mt-1" style={{ color: "var(--p-muted)" }}>{sub}</div>}
-    </div>
-  );
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">

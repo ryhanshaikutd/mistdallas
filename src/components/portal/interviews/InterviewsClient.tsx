@@ -28,7 +28,7 @@ interface Props {
   bookings: Booking[];
 }
 
-export default function InterviewsClient({ profile, cycle, slots: initialSlots, bookings: initialBookings }: Props) {
+export default function InterviewsClient({ cycle, slots: initialSlots, bookings: initialBookings }: Props) {
   const supabase = createClient();
   const [slots, setSlots] = useState(initialSlots);
   const [bookings] = useState(initialBookings);

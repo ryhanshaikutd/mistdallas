@@ -95,21 +95,17 @@ function StatCounter({ target, label, delay = 0, raw = false }: { target: number
   );
 }
 
-export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] }) {
-  const [activeCat, setActiveCat] = useState<BroadCat>("Knowledge & Quran");
-  const [expandedYears, setExpandedYears] = useState<number[]>([]);
-  const [catKey, setCatKey] = useState(0);
+interface YearBlockProps {
+  year: number;
+  qualifiers: Qualifier[];
+  activeCat: BroadCat;
+  onCatChange: (c: BroadCat) => void;
+  catKey: number;
+}
 
-  const years = Array.from(new Set(qualifiers.map(q => q.year))).sort((a, b) => b - a);
-  const currentYear = years[0];
-  const pastYears = years.slice(1);
-
-  function handleCatChange(c: BroadCat) {
-    setActiveCat(c);
-    setCatKey(k => k + 1);
-  }
-
-  function YearBlock({ year }: { year: number }) {
+// Declared at module level so React keeps its subtree (and the StatCounter
+// animations) mounted across parent re-renders.
+function YearBlock({ year, qualifiers, activeCat, onCatChange, catKey }: YearBlockProps) {
     const yearQuals = qualifiers.filter(q => q.year === year);
     const totalSlots = yearQuals.length;
     const uniqueSchools = new Set(yearQuals.map(q => q.school)).size;
@@ -142,7 +138,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
           {availableCats.map(c => (
             <button
               key={c}
-              onClick={() => handleCatChange(c)}
+              onClick={() => onCatChange(c)}
               className="flex-shrink-0 text-xs font-semibold px-5 py-2.5 rounded-full transition-all duration-200"
               style={cat === c
                 ? {
@@ -232,7 +228,23 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
         </div>
       </div>
     );
+}
+
+export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] }) {
+  const [activeCat, setActiveCat] = useState<BroadCat>("Knowledge & Quran");
+  const [expandedYears, setExpandedYears] = useState<number[]>([]);
+  const [catKey, setCatKey] = useState(0);
+
+  const years = Array.from(new Set(qualifiers.map(q => q.year))).sort((a, b) => b - a);
+  const currentYear = years[0] ?? new Date().getFullYear();
+  const pastYears = years.slice(1);
+
+  function handleCatChange(c: BroadCat) {
+    setActiveCat(c);
+    setCatKey(k => k + 1);
   }
+
+  const yearBlockProps = { qualifiers, activeCat, onCatChange: handleCatChange, catKey };
 
   return (
     <>
@@ -269,7 +281,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
               className="inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5"
               style={{ background: "rgba(27,52,100,0.08)", color: "#1B3464" }}
             >
-              2026 Nationals
+              {currentYear} Nationals
             </span>
             <h1
               className="text-5xl md:text-7xl font-extrabold leading-tight"
@@ -297,7 +309,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
             </div>
           ) : (
             <>
-              <YearBlock year={currentYear} />
+              <YearBlock year={currentYear} {...yearBlockProps} />
 
               {/* Past years accordion */}
               {pastYears.length > 0 && (
@@ -316,7 +328,7 @@ export default function NationalsPage({ qualifiers }: { qualifiers: Qualifier[] 
                           <span className="text-gray-500 font-semibold" style={{ fontFamily: "var(--font-syne)" }}>{year} Season</span>
                           <span className="text-gray-300 text-sm">{isOpen ? "▲" : "▼"}</span>
                         </button>
-                        {isOpen && <div className="mt-4"><YearBlock year={year} /></div>}
+                        {isOpen && <div className="mt-4"><YearBlock year={year} {...yearBlockProps} /></div>}
                       </div>
                     );
                   })}
