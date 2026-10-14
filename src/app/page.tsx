@@ -1,24 +1,15 @@
-import { redirect } from "next/navigation";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createPublicClient, createAdminClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
 import LandingPage from "@/components/landing/LandingPage";
 
-interface Props {
-  searchParams: Promise<{ code?: string; next?: string }>;
-}
+// Qualifier flag and gallery strip refresh every 5 minutes.
+export const revalidate = 300;
 
-export default async function Home({ searchParams }: Props) {
-  const { code, next } = await searchParams;
-
-  if (code) {
-    const target = next ? `/auth/callback?code=${code}&next=${next}` : `/auth/callback?code=${code}`;
-    redirect(target);
-  }
-
+export default async function Home() {
   // No Supabase keys locally — render the landing page with empty data.
   if (!hasSupabaseEnv()) return <LandingPage hasQualifiers={false} galleryPhotos={[]} />;
 
-  const supabase = await createClient();
+  const supabase = createPublicClient();
   const admin = createAdminClient();
 
   const [{ count: qualifierCount }, { data: galleryFiles }] = await Promise.all([

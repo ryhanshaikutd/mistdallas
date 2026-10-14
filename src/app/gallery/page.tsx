@@ -1,8 +1,16 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import type { Metadata } from "next";
 import GalleryClient from "@/components/landing/GalleryClient";
 
-export const revalidate = 0; // always fresh
+export const metadata: Metadata = {
+  title: "Gallery",
+  description: "Photos from MIST Dallas tournament weekends.",
+  alternates: { canonical: "/gallery" },
+};
+
+// New uploads appear within a minute instead of listing Storage on every request.
+export const revalidate = 60;
 
 const BUCKET = "gallery";
 
