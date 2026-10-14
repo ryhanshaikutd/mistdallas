@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import NationalsPage from "@/components/nationals/NationalsPage";
 
 export const revalidate = 3600;
@@ -9,6 +10,8 @@ export const metadata = {
 };
 
 export default async function Nationals() {
+  if (!hasSupabaseEnv()) return <NationalsPage qualifiers={[]} />;
+
   const supabase = await createClient();
 
   const { data: qualifiers } = await supabase

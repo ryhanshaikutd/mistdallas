@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import LandingPage from "@/components/landing/LandingPage";
 
 interface Props {
@@ -13,6 +14,9 @@ export default async function Home({ searchParams }: Props) {
     const target = next ? `/auth/callback?code=${code}&next=${next}` : `/auth/callback?code=${code}`;
     redirect(target);
   }
+
+  // No Supabase keys locally — render the landing page with empty data.
+  if (!hasSupabaseEnv()) return <LandingPage hasQualifiers={false} galleryPhotos={[]} />;
 
   const supabase = await createClient();
   const admin = createAdminClient();

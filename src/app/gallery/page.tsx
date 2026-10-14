@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/server";
+import { hasSupabaseEnv } from "@/lib/supabase/env";
 import GalleryClient from "@/components/landing/GalleryClient";
 
 export const revalidate = 0; // always fresh
@@ -6,6 +7,8 @@ export const revalidate = 0; // always fresh
 const BUCKET = "gallery";
 
 export default async function GalleryPage() {
+  if (!hasSupabaseEnv()) return <GalleryClient photos={[]} />;
+
   const admin = createAdminClient();
 
   const { data: files, error } = await admin.storage
