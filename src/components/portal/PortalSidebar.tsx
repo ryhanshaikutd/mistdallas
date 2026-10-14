@@ -3,31 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Users, Calendar, BarChart3, CheckSquare, Settings, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import type { Profile } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
+import { visibleNav, isActivePath } from "./nav";
 
 interface Props { profile: Profile | null }
 
-const NAV = [
-  { href: "/portal", label: "Dashboard", icon: LayoutDashboard, roles: ["all"] },
-  { href: "/portal/apply", label: "Apply", icon: ClipboardList, roles: ["applicant", "all"] },
-  { href: "/portal/review", label: "Applications", icon: Users, roles: ["regional_director", "internal_ad", "external_ad"] },
-  { href: "/portal/interviews", label: "Interviews", icon: Calendar, roles: ["regional_director", "internal_ad", "external_ad"] },
-  { href: "/portal/planning", label: "Planning", icon: CheckSquare, roles: ["regional_director", "internal_ad", "external_ad", "director", "chair", "lead"] },
-  { href: "/portal/insights", label: "Insights", icon: BarChart3, roles: ["regional_director", "internal_ad", "external_ad", "director"] },
-  { href: "/portal/settings", label: "Settings", icon: Settings, roles: ["all"] },
-];
-
-function canSee(roles: string[], role?: string) {
-  if (roles.includes("all")) return true;
-  return role ? roles.includes(role) : false;
-}
 
 export default function PortalSidebar({ profile }: Props) {
   const pathname = usePathname();
   const router = useRouter();
-  const visible = NAV.filter(n => canSee(n.roles, profile?.role));
+  const visible = visibleNav(profile?.role, { includeSettings: true });
   const displayName = profile?.preferred_name || profile?.full_name?.split(" ")[0] || "You";
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -54,7 +41,7 @@ export default function PortalSidebar({ profile }: Props) {
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {visible.map(item => {
           const Icon = item.icon;
-          const active = item.href === "/portal" ? pathname === item.href : pathname.startsWith(item.href);
+          const active = isActivePath(pathname, item.href);
           return (
             <Link key={item.href} href={item.href}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"

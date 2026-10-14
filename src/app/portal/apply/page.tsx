@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { INTERNAL_EMAIL_DOMAIN } from "@/lib/constants";
 import ApplicationForm from "@/components/portal/apply/ApplicationForm";
 
 export default async function ApplyPage() {
@@ -16,7 +17,7 @@ export default async function ApplyPage() {
     ? await supabase.from("applications").select("id, status").eq("applicant_id", user.id).eq("cycle_id", cycle.id).maybeSingle()
     : { data: null };
 
-  const isInternal = user.email?.endsWith("@getmistified.com") ?? false;
+  const isInternal = user.email?.toLowerCase().endsWith(`@${INTERNAL_EMAIL_DOMAIN}`) ?? false;
 
   return (
     <ApplicationForm

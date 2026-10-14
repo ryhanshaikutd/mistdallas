@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isLeadership } from "@/lib/constants";
 import ReviewDashboard from "@/components/portal/review/ReviewDashboard";
 
 export default async function ReviewPage() {
@@ -9,8 +10,7 @@ export default async function ReviewPage() {
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-  const allowed = ["regional_director", "internal_ad", "external_ad"];
-  if (!allowed.includes(profile?.role ?? "")) redirect("/portal");
+  if (!isLeadership(profile?.role)) redirect("/portal");
 
   const { data: applications } = await supabase
     .from("applications")

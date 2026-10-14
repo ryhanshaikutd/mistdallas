@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MIST Dallas
 
-## Getting Started
+Public website and board portal for MIST Dallas, the Southern regional chapter of the Muslim Interscholastic Tournament.
 
-First, run the development server:
+- **Public site** — landing page, Nationals qualifiers, photo gallery.
+- **Board portal** (`/portal`) — Google sign-in, board applications and review, interview scheduling, team planning board, insights.
+
+## Stack
+
+Next.js 16 (App Router, Turbopack) · React 19 · Tailwind CSS 4 · Supabase (Postgres, Auth, Storage) · Google Calendar API · Vercel.
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.local.example .env.local   # fill in the Supabase keys
+npm run dev                        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Without Supabase keys the public pages still render (with empty data) and the portal returns a 503 explaining what to set. See [SETUP.md](SETUP.md) for the full Supabase, Google and Vercel setup, and `supabase/` for the schema, migrations and seed data.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command         | What it does                     |
+| --------------- | -------------------------------- |
+| `npm run dev`   | Start the dev server             |
+| `npm run build` | Production build                 |
+| `npm run start` | Serve the production build       |
+| `npm run lint`  | ESLint (`npx tsc --noEmit` for types) |
 
-## Learn More
+## Project layout
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/app/            routes (public pages, /portal, /api, /auth/callback)
+src/components/     landing, nationals, and portal UI
+src/lib/supabase/   server, browser, public (cookie-free) and admin clients; proxy session refresh
+src/lib/constants   roles, teams, labels
+supabase/           schema.sql, migrations/, seed data
+```

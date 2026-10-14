@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isLeadership } from "@/lib/constants";
 import InsightsDashboard from "@/components/portal/insights/InsightsDashboard";
 
 export default async function InsightsPage() {
@@ -9,10 +10,9 @@ export default async function InsightsPage() {
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-  const allowed = ["regional_director", "internal_ad", "external_ad", "director"];
-  if (!allowed.includes(profile?.role ?? "")) redirect("/portal");
+  if (!isLeadership(profile?.role) && profile?.role !== "director") redirect("/portal");
 
-  const isLeadership = ["regional_director", "internal_ad", "external_ad"].includes(profile?.role ?? "");
+  const leadership = isLeadership(profile?.role);
 
   const appsQuery = supabase
     .from("applications")
@@ -22,12 +22,12 @@ export default async function InsightsPage() {
     .from("tasks")
     .select("id, status, team");
 
-  if (!isLeadership && profile?.team) {
+  if (!leadership && profile?.team) {
     tasksQuery.eq("team", profile.team);
   }
 
   const [{ data: applications }, { data: tasks }, { data: attendance }] = await Promise.all([
-    isLeadership ? appsQuery : { data: [] },
+    leadership ? appsQuery : { data: [] },
     tasksQuery,
     supabase.from("attendance_records").select("id, event_name, event_date, school, team, cycle_year").order("event_date"),
   ]);
@@ -51,7 +51,7 @@ export default async function InsightsPage() {
       applications={normalizedApps}
       tasks={tasks ?? []}
       attendance={attendance ?? []}
-      isLeadership={isLeadership}
+      isLeadership={leadership}
     />
   );
 }

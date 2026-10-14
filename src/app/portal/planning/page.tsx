@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isLeadership } from "@/lib/constants";
 import PlanningBoard from "@/components/portal/planning/PlanningBoard";
 
 export default async function PlanningPage() {
@@ -12,14 +13,14 @@ export default async function PlanningPage() {
   const excluded = ["applicant"];
   if (excluded.includes(profile?.role ?? "")) redirect("/portal");
 
-  const isLeadership = ["regional_director", "internal_ad", "external_ad"].includes(profile?.role ?? "");
+  const leadership = isLeadership(profile?.role);
 
   const tasksQuery = supabase
     .from("tasks")
     .select("*, assignee:profiles!tasks_assigned_to_fkey(id, full_name, email), assigner:profiles!tasks_assigned_by_fkey(id, full_name)")
     .order("created_at", { ascending: false });
 
-  if (!isLeadership && profile?.team) {
+  if (!leadership && profile?.team) {
     tasksQuery.eq("team", profile.team);
   }
 
@@ -37,7 +38,7 @@ export default async function PlanningPage() {
       tasks={tasks ?? []}
       milestones={milestones ?? []}
       teamMembers={teamMembers ?? []}
-      isLeadership={isLeadership}
+      isLeadership={leadership}
     />
   );
 }

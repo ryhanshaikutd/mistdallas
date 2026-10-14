@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useIsClient } from "@/lib/hooks/useIsClient";
 import type { Profile } from "@/lib/types";
-import { TEAM_LABELS } from "@/lib/constants";
+import { TEAM_LABELS, isLeadership } from "@/lib/constants";
 import { Users, ClipboardList, CheckSquare, Calendar, ArrowRight, Clock, Circle, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfWeek, addDays, isSameDay, parseISO } from "date-fns";
 
@@ -178,7 +178,7 @@ export default function DashboardClient({ profile, recentApplications, pendingTa
   const isClient = useIsClient();
   const hour = isClient ? new Date().getHours() : 12; // neutral default during SSR
 
-  const isReviewer = ["regional_director", "internal_ad", "external_ad"].includes(profile?.role ?? "");
+  const isReviewer = isLeadership(profile?.role);
   const isApplicant = profile?.role === "applicant";
   const displayName = profile?.preferred_name || profile?.full_name?.split(" ")[0] || "there";
 
