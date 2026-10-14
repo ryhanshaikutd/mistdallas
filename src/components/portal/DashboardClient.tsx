@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useIsClient } from "@/lib/hooks/useIsClient";
 import type { Profile } from "@/lib/types";
-import { TEAM_LABELS } from "@/lib/constants";
+import { TEAM_LABELS, isLeadership } from "@/lib/constants";
 import { Users, ClipboardList, CheckSquare, Calendar, ArrowRight, Clock, Circle, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfWeek, addDays, isSameDay, parseISO } from "date-fns";
 
@@ -31,18 +32,14 @@ function greeting(name: string, hour: number) {
 
 function WeekView({ tasks, milestones }: { tasks: Task[]; milestones: Milestone[] }) {
   const [weekOffset, setWeekOffset] = useState(0);
-  // null until mounted to avoid hydration mismatch
-  const [today, setToday] = useState<Date | null>(null);
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  // Dates are only rendered on the client to avoid a hydration mismatch
+  // between the server's clock/timezone and the visitor's.
+  const isClient = useIsClient();
+  const [today] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState(() => new Date());
 
-  useEffect(() => {
-    const now = new Date();
-    setToday(now);
-    setSelectedDay(now);
-  }, []);
-
-  // Skeleton while not yet mounted
-  if (!today || !selectedDay) {
+  // Skeleton during SSR and hydration
+  if (!isClient) {
     return (
       <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--p-card)", borderColor: "var(--p-border)", minHeight: 220 }}>
         <div className="px-5 py-4 border-b" style={{ borderColor: "var(--p-border)" }}>
@@ -80,7 +77,7 @@ function WeekView({ tasks, milestones }: { tasks: Task[]; milestones: Milestone[
           {format(weekStart, "MMM d")} — {format(days[6], "MMM d, yyyy")}
         </h3>
         <div className="flex items-center gap-1">
-          <button onClick={() => setWeekOffset(w => w - 1)} className="p-1.5 rounded-lg transition-colors"
+          <button onClick={() => setWeekOffset(w => w - 1)} aria-label="Previous week" className="p-1.5 rounded-lg transition-colors"
             style={{ color: "var(--p-muted)" }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--p-card-hover)"}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
@@ -92,7 +89,7 @@ function WeekView({ tasks, milestones }: { tasks: Task[]; milestones: Milestone[
             style={{ color: "var(--p-accent)", background: isCurrentWeek ? "var(--p-accent)" + "15" : "transparent" }}>
             Today
           </button>
-          <button onClick={() => setWeekOffset(w => w + 1)} className="p-1.5 rounded-lg transition-colors"
+          <button onClick={() => setWeekOffset(w => w + 1)} aria-label="Next week" className="p-1.5 rounded-lg transition-colors"
             style={{ color: "var(--p-muted)" }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--p-card-hover)"}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
@@ -178,10 +175,10 @@ function WeekView({ tasks, milestones }: { tasks: Task[]; milestones: Milestone[
 }
 
 export default function DashboardClient({ profile, recentApplications, pendingTasks, milestones, activeCycle }: Props) {
-  const [hour, setHour] = useState(12); // neutral default during SSR
-  useEffect(() => { setHour(new Date().getHours()); }, []);
+  const isClient = useIsClient();
+  const hour = isClient ? new Date().getHours() : 12; // neutral default during SSR
 
-  const isReviewer = ["regional_director", "internal_ad", "external_ad"].includes(profile?.role ?? "");
+  const isReviewer = isLeadership(profile?.role);
   const isApplicant = profile?.role === "applicant";
   const displayName = profile?.preferred_name || profile?.full_name?.split(" ")[0] || "there";
 

@@ -18,12 +18,14 @@ npm install
 cp .env.local.example .env.local
 ```
 
+`.env.local.example` lists every variable the app reads. Fill in the Supabase values now; the Google Calendar ones are only needed for interview Meet links.
+
 ---
 
 ## Step 2 — Supabase setup
 
 1. Go to [supabase.com](https://supabase.com) → New Project → name it `mistdallas`
-2. Once created, go to **SQL Editor** → paste the entire contents of `supabase/schema.sql` → Run
+2. Once created, go to **SQL Editor** → paste the entire contents of `supabase/schema.sql` → Run, then run each file in `supabase/migrations/` in order
 3. Go to **Project Settings → API**:
    - Copy `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - Copy `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -47,8 +49,7 @@ cp .env.local.example .env.local
 3. Go to **APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID**
    - Application type: Web application
    - Authorized redirect URIs: add your Supabase OAuth callback URL (shown in Supabase dashboard)
-4. Copy Client ID → `GOOGLE_CLIENT_ID`
-5. Copy Client Secret → `GOOGLE_CLIENT_SECRET`
+4. Paste the Client ID and Client Secret into **Supabase → Authentication → Providers → Google** (step 2 above). They are not read by the app itself, so they do not go in `.env.local`.
 
 ### Service Account (for calendar/meet creation)
 
@@ -64,13 +65,9 @@ cp .env.local.example .env.local
 
 ---
 
-## Step 4 — Resend setup
+## Step 4 — Resend setup (not yet wired up)
 
-1. Go to [resend.com](https://resend.com) → Create account
-2. Add and verify your domain (`mistdallas.org`) in Resend
-3. Go to **API Keys → Create API Key**
-4. Copy it → `RESEND_API_KEY`
-5. Set `RESEND_FROM_EMAIL=board@mistdallas.org`
+The app does not send email today. When notifications are added, create a [Resend](https://resend.com) account, verify `mistdallas.org`, and add `RESEND_API_KEY` / `RESEND_FROM_EMAIL` to `.env.local.example` alongside the code that uses them.
 
 ---
 

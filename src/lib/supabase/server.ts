@@ -27,6 +27,19 @@ export async function createClient() {
   )
 }
 
+/**
+ * Anonymous client with no cookie access, for public pages. Because it never
+ * touches request-time APIs, pages that use it can be statically cached and
+ * revalidated instead of being rendered on every request.
+ */
+export function createPublicClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
+
 export function createAdminClient() {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

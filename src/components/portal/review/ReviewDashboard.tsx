@@ -63,7 +63,7 @@ const STATUS_LABELS: Record<string, string> = {
   offered_different_position: "Alt. Position",
 };
 
-export default function ReviewDashboard({ applications: initial, positions, profile }: Props) {
+export default function ReviewDashboard({ applications: initial, profile }: Props) {
   const supabase = createClient();
   const [apps, setApps] = useState(initial);
   const [search, setSearch] = useState("");

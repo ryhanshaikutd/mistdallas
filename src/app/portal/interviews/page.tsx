@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { isLeadership } from "@/lib/constants";
 import InterviewsClient from "@/components/portal/interviews/InterviewsClient";
 
 export default async function InterviewsPage() {
@@ -8,8 +9,7 @@ export default async function InterviewsPage() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-  const allowed = ["regional_director", "internal_ad", "external_ad"];
-  if (!allowed.includes(profile?.role ?? "")) redirect("/portal");
+  if (!isLeadership(profile?.role)) redirect("/portal");
 
   const { data: cycle } = await supabase
     .from("recruitment_cycles")

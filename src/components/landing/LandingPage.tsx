@@ -199,8 +199,8 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
                 </div>
                 <button
                   onClick={() => setBannerDismissed(true)}
-                  className="text-white/25 hover:text-white/60 transition-colors"
-                  aria-label="Dismiss"
+                  className="text-white/50 hover:text-white transition-colors"
+                  aria-label="Dismiss announcement"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -230,7 +230,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="MIST Dallas" width={38} height={38} className={`object-contain transition-all duration-300 ${scrolled ? "brightness-0" : "brightness-0 invert"}`} />
+            <Image src="/logo.png" alt="MIST Dallas" width={38} height={40} className={`object-contain transition-all duration-300 ${scrolled ? "brightness-0" : "brightness-0 invert"}`} />
             <span className={`font-bold text-lg transition-colors duration-300 ${scrolled ? "text-[#1B3464]" : "text-white"}`} style={{ fontFamily: "var(--font-syne)" }}>
               MIST Dallas
             </span>
@@ -250,14 +250,15 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
               className={`hidden md:flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-full transition-all duration-300 ${scrolled ? "bg-[#1B3464] text-white hover:bg-[#2E7BC4]" : "bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25"}`}>
               Board Portal <ChevronRight className="w-4 h-4" />
             </Link>
-            <button className={`md:hidden p-2 transition-colors ${scrolled ? "text-gray-600" : "text-white"}`} onClick={() => setMobileOpen(!mobileOpen)}>
+            <button className={`md:hidden p-2 transition-colors ${scrolled ? "text-gray-600" : "text-white"}`} onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"} aria-expanded={mobileOpen} aria-controls="mobile-nav">
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-4">
+          <div id="mobile-nav" className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-4">
             {NAV_LINKS.map((l) => (
               <Link key={l.href} href={l.href} className="text-sm font-medium text-gray-700" onClick={() => setMobileOpen(false)}>{l.label}</Link>
             ))}
@@ -270,13 +271,18 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#060D18]">
-        {/* Background video */}
+        {/* Still frame: paints immediately (LCP) and is what reduced-motion users see */}
+        <Image src="/hero.jpg" alt="" fill priority sizes="100vw" className="object-cover" />
+        {/* Background video (hidden under prefers-reduced-motion, see globals.css) */}
         <video
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 w-full h-full object-cover"
+          preload="metadata"
+          poster="/hero.jpg"
+          aria-hidden="true"
+          className="hero-video absolute inset-0 w-full h-full object-cover"
         >
           <source src="/hero.mp4" type="video/mp4" />
         </video>
@@ -297,8 +303,9 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
           </p>
 
           {/* MIST — letters clip-reveal upward, staggered */}
-          <div className="overflow-hidden leading-none mb-1">
-            <h1
+          <h1 aria-label="MIST Dallas">
+          <span aria-hidden="true" className="block overflow-hidden leading-none mb-1">
+            <span
               className="text-[clamp(5rem,18vw,14rem)] font-extrabold text-white tracking-tight block"
               style={{ fontFamily: "var(--font-syne)" }}
             >
@@ -313,12 +320,12 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
                   {ch}
                 </span>
               ))}
-            </h1>
-          </div>
+            </span>
+          </span>
 
           {/* Dallas — same but delayed after MIST lands */}
-          <div className="overflow-hidden leading-none">
-            <h1
+          <span aria-hidden="true" className="block overflow-hidden leading-none">
+            <span
               className="text-[clamp(5rem,18vw,14rem)] font-extrabold tracking-tight block"
               style={{
                 fontFamily: "var(--font-syne)",
@@ -337,8 +344,9 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
                   {ch}
                 </span>
               ))}
-            </h1>
-          </div>
+            </span>
+          </span>
+          </h1>
 
           {/* Tagline */}
           <p className="mt-8 text-white/60 text-lg font-light tracking-widest uppercase"
@@ -389,7 +397,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
           <FadeUp delay={150}>
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl group">
-              <Image src="/about.jpg" alt="MIST Dallas tournament" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+              <Image src="/about.jpg" alt="MIST Dallas tournament" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition-transform duration-700 group-hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1B3464]/70 to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="text-white font-bold text-2xl" style={{ fontFamily: "var(--font-syne)" }}>Hundreds of Competitors</div>
@@ -402,7 +410,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
       {/* ── THIS IS MIST + GALLERY ── */}
       <section className="relative overflow-hidden bg-[#060D18]">
-        <Image src="/photo2.jpeg" alt="MIST Dallas crowd" fill className="object-cover object-center" />
+        <Image src="/photo2.jpeg" alt="" fill sizes="100vw" className="object-cover object-center" />
         <div className="absolute inset-0 bg-[#0F2240]/80" />
         <div className="relative z-10 pt-24 pb-0 text-center px-6">
           <FadeUp>
@@ -499,7 +507,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
 
       {/* ── CLOSING CTA ── */}
       <section className="relative h-[70vh] overflow-hidden flex items-center justify-center">
-        <Image src="/photo3.jpeg" alt="MIST Dallas closing ceremony" fill className="object-cover" />
+        <Image src="/photo3.jpeg" alt="" fill sizes="100vw" className="object-cover" />
         <div className="absolute inset-0 bg-[#0F2240]/80" />
         <FadeUp className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[#7ADBB8] text-xs font-semibold px-4 py-1.5 rounded-full mb-8">
@@ -520,7 +528,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
           <div className="grid md:grid-cols-3 gap-12 mb-12">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <Image src="/logo.png" alt="MIST Dallas" width={32} height={32} className="object-contain brightness-0 invert" />
+                <Image src="/logo.png" alt="MIST Dallas" width={32} height={34} className="object-contain brightness-0 invert" />
                 <span className="font-bold text-lg" style={{ fontFamily: "var(--font-syne)" }}>MIST Dallas</span>
               </div>
               <p className="text-white/40 text-sm leading-relaxed">Southern regional chapter of the Muslim Interscholastic Tournament. Open to all high schoolers. Est. 2018.</p>
@@ -530,7 +538,7 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
               <ul className="space-y-2">
                 {[...NAV_LINKS, { label: "Board Portal", href: "/portal" }].map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="text-white/40 hover:text-[#7ADBB8] text-sm transition-colors">{l.label}</Link>
+                    <Link href={l.href} className="text-white/60 hover:text-[#7ADBB8] text-sm transition-colors">{l.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -541,8 +549,8 @@ export default function LandingPage({ hasQualifiers = false, galleryPhotos = [] 
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-white/20 text-sm">© {new Date().getFullYear()} MIST Dallas.</p>
-            <p className="text-white/20 text-sm">A regional chapter of MIST National</p>
+            <p className="text-white/50 text-sm">© {new Date().getFullYear()} MIST Dallas.</p>
+            <p className="text-white/50 text-sm">A regional chapter of MIST National</p>
           </div>
         </div>
       </footer>

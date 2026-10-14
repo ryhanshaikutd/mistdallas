@@ -8,10 +8,10 @@ import { Globe, Star } from "lucide-react";
 
 export default function LoginClient() {
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
 
   async function signInWithGoogle() {
     setLoading(true);
+    const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -41,7 +41,7 @@ export default function LoginClient() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="MIST Dallas" width={48} height={48} className="object-contain brightness-0 invert" />
+            <Image src="/logo.png" alt="MIST Dallas" width={48} height={50} className="object-contain brightness-0 invert" />
             <span className="font-bold text-xl">MIST Dallas</span>
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function LoginClient() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="lg:hidden flex justify-center mb-8">
-            <Image src="/logo.png" alt="MIST Dallas" width={64} height={64} className="object-contain" />
+            <Image src="/logo.png" alt="MIST Dallas" width={64} height={67} className="object-contain" />
           </div>
 
           <h1 className="text-3xl font-bold text-[#2D2F3A] mb-2">Sign in</h1>

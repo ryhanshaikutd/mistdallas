@@ -28,7 +28,7 @@ interface Props {
   bookings: Booking[];
 }
 
-export default function InterviewsClient({ profile, cycle, slots: initialSlots, bookings: initialBookings }: Props) {
+export default function InterviewsClient({ cycle, slots: initialSlots, bookings: initialBookings }: Props) {
   const supabase = createClient();
   const [slots, setSlots] = useState(initialSlots);
   const [bookings] = useState(initialBookings);
@@ -234,6 +234,7 @@ export default function InterviewsClient({ profile, cycle, slots: initialSlots, 
                     </div>
                     <button
                       onClick={() => deleteSlot(slot.id)}
+                      aria-label={`Delete slot on ${format(parseISO(slot.starts_at), "MMMM d 'at' h:mm a")}`}
                       disabled={deleting === slot.id}
                       className="p-2 rounded-lg transition-colors"
                       style={{ color: "var(--p-muted)" }}

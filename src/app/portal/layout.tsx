@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import PortalSidebar from "@/components/portal/PortalSidebar";
 import PortalTopNav from "@/components/portal/PortalTopNav";
 import PortalHeader from "@/components/portal/PortalHeader";
+
+export const metadata: Metadata = {
+  title: "Board Portal",
+  robots: { index: false, follow: false },
+};
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
