@@ -83,7 +83,7 @@ describe("deliverable dates and next actions", () => {
   });
 
   it("lists unchecked deliverables that are overdue or due within 14 days, oldest first", () => {
-    const byPhase = { foundations: { ...emptyPhaseData(), checks: { [deliverableId("Oct 1: A")]: true } } };
+    const byPhase = { foundations: { ...emptyPhaseData(), checks: { [deliverableId("Oct 1: A")]: true as const } } };
     const out = nextActions(role, byPhase, SEASON, "2026-10-08");
     expect(out.map((a) => [a.text, a.due, a.overdue])).toEqual([
       ["Oct 5: B", "2026-10-05", true],
