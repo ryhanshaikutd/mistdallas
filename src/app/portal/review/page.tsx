@@ -16,7 +16,7 @@ export default async function ReviewPage() {
     `)
     .order("created_at", { ascending: false });
 
-  const { data: positions } = await supabase.from("positions").select("*").eq("is_active", true);
+  const { data: positions } = await supabase.from("positions").select("*").eq("is_active", true).order("sort_order");
 
   return <ReviewDashboard applications={applications ?? []} positions={positions ?? []} profile={profile} />;
 }
