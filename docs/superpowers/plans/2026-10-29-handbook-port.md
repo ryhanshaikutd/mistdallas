@@ -604,3 +604,34 @@ src/app/api/cron/reminders/route.ts, vercel.json
 - [ ] **Step 2:** Walk the permission matrix once against `nav.ts` and each page's `require*` call; fix any page whose guard is looser than its nav entry.
 - [ ] **Step 3:** Fresh-context code review of the whole branch (superpowers:requesting-code-review), fix findings, re-run Step 1.
 - [ ] **Step 4:** Push `feat/handbook-port`; open a PR against `main` whose body lists: migrations to run in order, the sync command, env vars to set on Vercel, and what is deferred (tournament UI, chat).
+
+---
+
+## Addendum (2026-10-29): the handbook's Supabase project becomes the single backend
+
+Decided with the user after the main plan shipped: the mistdallas Supabase project holds nothing of value except the `gallery` Storage bucket (19 pictures), while the handbook project holds the 29 real accounts. So the merged site runs on the handbook project. Three more tasks; the existing migrations stay unchanged.
+
+### Task 28: Adoption scripts
+
+**Files:**
+- Create: `supabase/adopt-handbook/01-before-schema.sql`, `supabase/adopt-handbook/02-after-migrations.sql`
+- Create: `tests/db/fixtures/handbook-schema.sql` (the handbook's own SQL, concatenated, minus its realtime publication line), `tests/db/adopt-handbook.test.ts`
+- Modify: `tests/db/harness.ts` (add `createHandbookDb()`)
+
+**Interfaces:**
+- `01-before-schema.sql`: for each handbook table (`profiles, announcements, role_applications, workbook_progress, deadline_events, reminder_preferences, reminder_deliveries, messages, tournament_rooms, room_availability, competition_blocks, student_registrations, student_competition_entries, room_assignments, nfc_scan_logs, mymist_import_batches, mymist_participants, mymist_schools, mymist_judges`): if it exists and is empty, drop it; if it has rows, rename it to `handbook_<name>` and rename its constraints, indexes and sequences with the same prefix so `schema.sql` and the migrations can create fresh tables without name clashes. Idempotent. Then the operator runs `schema.sql` and the seven migrations unchanged.
+- `02-after-migrations.sql`: copies `handbook_profiles` into `profiles` by id (email lower-cased, name coalesced), seeds `legacy_seat_assignments` from `handbook_profiles.role_id`/`is_admin` (aliases `groups → group-projects`, `communications → comms`; unknown ids get a null slug so leadership can see them), copies `handbook_reminder_preferences`, converts `handbook_workbook_progress` rows into `legacy_workbook_progress` (notes and fields carried; index-aligned checks cannot be mapped in SQL, so a NOTICE reports how many checked items were dropped), then `select public.apply_legacy_seats_all()`. Every statement guarded with `to_regclass` so a dropped-when-empty table is skipped. Idempotent.
+- `createHandbookDb()`: auth stub + the fixture schema; returns a PGlite ready for synthetic handbook rows.
+
+- [ ] Test (RED): build the handbook db, insert 6 synthetic profiles (rd admin with mixed-case email, a `groups` alias, a null-name/no-role user, a typo-domain `arts` user, a second rd, an unknown `wizard` role), one workbook row with the handbook's data shape, one reminder preference; run 01 twice; run `schema.sql` + migrations; run 02 twice. Assert: 6 profiles with the same ids; roles rd/rd → regional_director+exec, groups → chair on `group-projects`, wizard → applicant with a null-slug legacy row, null name → ''; 46 milestones, 35 positions; `handbook_deadline_events` has 8 rows and `handbook_announcements` 1 while new `announcements` has the welcome seed; reminder preference copied; workbook notes copied; anon cannot read `profiles`.
+- [ ] Implement, GREEN, commit `feat(db): adopt the handbook Supabase project as the single backend`.
+
+### Task 29: Gallery copy
+
+**Files:** `scripts/copy-gallery.mjs`, `scripts/lib/gallery.mjs`, `scripts/lib/gallery.test.mjs`
+- `extractGalleryUrls(html: string, origin?: string): string[]` — unique `…/storage/v1/object/public/gallery/<name>` URLs from a page, in document order; `objectNameFromUrl(url): string` (decoded).
+- Script: `--from-site https://mistdallas.org` (default) scrapes `/` and `/gallery`; `--dry-run` lists; otherwise creates the public `gallery` bucket on `NEXT_PUBLIC_SUPABASE_URL` with `SUPABASE_SERVICE_ROLE_KEY` if missing and uploads each object with `x-upsert: true`, preserving content type.
+- [ ] Test (RED) the two helpers; implement; GREEN; dry-run against the live site shows 19 objects; commit.
+
+### Task 30: Docs for this path
+- `docs/cutover.md` rewritten for the handbook project; SETUP.md step 2 gains the adoption order; README one line. Commit, push, update PR #2's description.

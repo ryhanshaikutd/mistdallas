@@ -58,6 +58,17 @@ export async function applyMigrations(db: PGlite): Promise<void> {
   }
 }
 
+/** A database shaped like the 2027 Handbook portal's project (its own SQL, no mistdallas schema). */
+export async function createHandbookDb(): Promise<PGlite> {
+  const db = new PGlite({ extensions: { uuid_ossp } });
+  await db.exec(AUTH_STUB);
+  await db.exec(fs.readFileSync(path.join(ROOT, "tests", "db", "fixtures", "handbook-schema.sql"), "utf8"));
+  return db;
+}
+
+/** The contents of supabase/schema.sql, for tests that apply it to a non-empty database. */
+export const schemaSql = (): string => fs.readFileSync(SCHEMA, "utf8");
+
 export async function createTestDb(opts: { migrations?: boolean } = {}): Promise<PGlite> {
   const db = new PGlite({ extensions: { uuid_ossp } });
   await db.exec(AUTH_STUB);
