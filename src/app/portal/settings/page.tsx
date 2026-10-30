@@ -1,15 +1,13 @@
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
+import type { ReminderLeadTime } from "@/lib/types";
 import SettingsClient from "@/components/portal/settings/SettingsClient";
 
 export default async function SettingsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("*").eq("id", user.id).single();
-
-  return <SettingsClient profile={profile} />;
+  const { user, profile, supabase } = await requireUser();
+  const { data: reminder } = await supabase
+    .from("reminder_preferences")
+    .select("email_enabled, days_before")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  return <SettingsClient profile={profile} reminder={reminder as { email_enabled: boolean; days_before: ReminderLeadTime } | null} />;
 }

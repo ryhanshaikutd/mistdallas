@@ -7,16 +7,17 @@ import { Settings, LogOut, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import type { Profile } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
-import { visibleNav, isActivePath } from "./nav";
+import { ROLE_TIER_LABELS } from "@/lib/constants";
+import { navGroups, isActivePath, type NavGroup } from "./nav";
 
 interface Props { profile: Profile | null }
-
 
 export default function PortalTopNav({ profile }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-  const visible = visibleNav(profile?.role, { includeSettings: false });
+  const [openGroup, setOpenGroup] = useState<NavGroup | null>(null);
+  const groups = navGroups(profile?.role, { includeSettings: false });
   const displayName = profile?.preferred_name || profile?.full_name?.split(" ")[0] || "You";
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -24,6 +25,11 @@ export default function PortalTopNav({ profile }: Props) {
     await createClient().auth.signOut();
     router.push("/login");
   }
+
+  const linkStyle = (active: boolean) => ({
+    background: active ? "var(--p-accent)" + "20" : "transparent",
+    color: active ? "var(--p-accent)" : "var(--p-muted)",
+  });
 
   return (
     <header className="flex-shrink-0 border-b px-6 flex items-center gap-6 h-14" style={{
@@ -36,17 +42,44 @@ export default function PortalTopNav({ profile }: Props) {
       </Link>
 
       <nav className="flex items-center gap-1 flex-1">
-        {visible.map(item => {
-          const active = isActivePath(pathname, item.href);
+        {groups.map(group => {
+          if (group.group === "main") {
+            return group.items.map(item => (
+              <Link key={item.href} href={item.href}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150"
+                style={linkStyle(isActivePath(pathname, item.href))}>
+                {item.label}
+              </Link>
+            ));
+          }
+          const groupActive = group.items.some(item => isActivePath(pathname, item.href));
+          const open = openGroup === group.group;
           return (
-            <Link key={item.href} href={item.href}
-              className="px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150"
-              style={{
-                background: active ? "var(--p-accent)" + "20" : "transparent",
-                color: active ? "var(--p-accent)" : "var(--p-muted)",
-              }}>
-              {item.label}
-            </Link>
+            <div key={group.group} className="relative">
+              <button onClick={() => setOpenGroup(open ? null : group.group)}
+                aria-haspopup="menu" aria-expanded={open}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-150"
+                style={linkStyle(groupActive || open)}>
+                {group.label} <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+              {open && (
+                <div role="menu" className="absolute left-0 top-full mt-2 w-52 rounded-2xl border shadow-xl overflow-hidden z-50"
+                  style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
+                  {group.items.map(item => {
+                    const Icon = item.icon;
+                    return (
+                      <Link key={item.href} href={item.href} role="menuitem" onClick={() => setOpenGroup(null)}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm transition-colors"
+                        style={{ color: isActivePath(pathname, item.href) ? "var(--p-accent)" : "var(--p-text-secondary)" }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--p-card-hover)"}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
+                        <Icon className="w-3.5 h-3.5" /> {item.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
@@ -67,7 +100,7 @@ export default function PortalTopNav({ profile }: Props) {
             style={{ background: "var(--p-card)", borderColor: "var(--p-border)" }}>
             <div className="px-4 py-3 border-b" style={{ borderColor: "var(--p-border)" }}>
               <div className="text-xs font-semibold" style={{ color: "var(--p-text)" }}>{displayName}</div>
-              <div className="text-xs" style={{ color: "var(--p-muted)" }}>{profile?.role?.replace(/_/g, " ")}</div>
+              <div className="text-xs" style={{ color: "var(--p-muted)" }}>{profile ? ROLE_TIER_LABELS[profile.role] : ""}</div>
             </div>
             <Link href="/portal/settings" onClick={() => setMenuOpen(false)}
               className="w-full flex items-center gap-2 px-4 py-3 text-sm transition-colors"

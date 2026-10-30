@@ -1,33 +1,24 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireBoard } from "@/lib/auth";
 import { isLeadership } from "@/lib/constants";
 import PlanningBoard from "@/components/portal/planning/PlanningBoard";
 
 export default async function PlanningPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-
-  const excluded = ["applicant"];
-  if (excluded.includes(profile?.role ?? "")) redirect("/portal");
-
-  const leadership = isLeadership(profile?.role);
+  const { profile, supabase } = await requireBoard();
+  const leadership = isLeadership(profile.role);
 
   const tasksQuery = supabase
     .from("tasks")
     .select("*, assignee:profiles!tasks_assigned_to_fkey(id, full_name, email), assigner:profiles!tasks_assigned_by_fkey(id, full_name)")
     .order("created_at", { ascending: false });
 
-  if (!leadership && profile?.team) {
+  if (!leadership && profile.team) {
     tasksQuery.eq("team", profile.team);
   }
 
   const [{ data: tasks }, { data: milestones }, { data: teamMembers }] = await Promise.all([
     tasksQuery,
     supabase.from("milestones").select("*").order("target_date"),
-    profile?.team
+    profile.team
       ? supabase.from("profiles").select("id, full_name, role, team").eq("team", profile.team)
       : { data: [] },
   ]);

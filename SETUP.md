@@ -1,11 +1,11 @@
 # MIST Dallas Board Portal — Developer Setup
 
 ## Prerequisites
-- Node.js 18+
+- Node.js 20+
 - A Supabase account (free tier works)
 - A Google Cloud project
-- A Resend account (free tier works)
-- Vercel account (for deployment)
+- A Resend account (free tier works) — for decision and reminder emails
+- Vercel account (for deployment and the daily reminder cron)
 
 ---
 
@@ -18,14 +18,26 @@ npm install
 cp .env.local.example .env.local
 ```
 
-`.env.local.example` lists every variable the app reads. Fill in the Supabase values now; the Google Calendar ones are only needed for interview Meet links.
+`.env.local.example` lists every variable the app reads. Fill in the Supabase values now; the Google Calendar ones are only needed for interview Meet links, and the Resend ones only for email.
 
 ---
 
 ## Step 2 — Supabase setup
 
-1. Go to [supabase.com](https://supabase.com) → New Project → name it `mistdallas`
-2. Once created, go to **SQL Editor** → paste the entire contents of `supabase/schema.sql` → Run, then run each file in `supabase/migrations/` in order
+1. Pick the project. **Recommended:** adopt the 2027 Handbook portal's existing project, which already holds the organizer accounts; run `supabase/adopt-handbook/01-before-schema.sql` first and `supabase/adopt-handbook/02-after-migrations.sql` last (see `docs/cutover.md`). Otherwise create a fresh project named `mistdallas`.
+2. Go to **SQL Editor** and run, in this order:
+   1. `supabase/schema.sql`
+   2. `supabase/migrations/20261014_audit_fixes.sql`
+   3. `supabase/migrations/20261029_00_exec_team.sql` — **run this file on its own**: it adds an enum value, and Postgres will not let the same transaction use that value
+   4. `supabase/migrations/20261029_01_positions_seats.sql`
+   5. `supabase/migrations/20261029_02_season_milestones.sql`
+   6. `supabase/migrations/20261029_03_workbooks_reminders.sql`
+   7. `supabase/migrations/20261029_04_meetings_feedback.sql`
+   8. `supabase/migrations/20261029_05_tournament_mymist.sql`
+
+   9. `supabase/adopt-handbook/02-after-migrations.sql` (adopted project only)
+
+   Every file is idempotent, so re-running one is safe. Together they seed the 35-seat position catalog, the 2027 season settings, 46 season milestones, the welcome announcement and five feedback themes.
 3. Go to **Project Settings → API**:
    - Copy `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - Copy `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -65,53 +77,27 @@ cp .env.local.example .env.local
 
 ---
 
-## Step 4 — Resend setup (not yet wired up)
+## Step 4 — Resend and the reminder cron
 
-The app does not send email today. When notifications are added, create a [Resend](https://resend.com) account, verify `mistdallas.org`, and add `RESEND_API_KEY` / `RESEND_FROM_EMAIL` to `.env.local.example` alongside the code that uses them.
+The portal sends two kinds of email through [Resend](https://resend.com): application decisions (accepted, not selected, redirected to the Dream Team) and daily deadline reminders. Both are skipped, not failed, while the variables are missing.
+
+1. Create a Resend account and verify `mistdallas.org` as a sending domain.
+2. Set in `.env.local` and in Vercel:
+   - `RESEND_API_KEY`
+   - `RESEND_FROM_EMAIL` — e.g. `MIST Dallas <board@mistdallas.org>`
+   - `CRON_SECRET` — a long random string; Vercel sends it as `Authorization: Bearer …` to the cron route
+   - `NEXT_PUBLIC_SITE_URL` — the absolute site URL used in email links (defaults to `https://mistdallas.org`)
+3. `vercel.json` schedules `GET /api/cron/reminders` daily at 14:00 UTC (9 AM Central). Each board member chooses on **Settings** whether to receive reminders and how many days before (1, 3, 7 or 14). A delivery is recorded per person, milestone and day, so a second run the same day sends nothing.
+
+To test the route locally: `curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/reminders`.
 
 ---
 
-## Step 5 — Seed initial data
+## Step 5 — Seed data
 
-After running the schema, seed the positions:
+Positions (seats), the season, milestones, the welcome announcement and feedback themes are seeded by the migrations in Step 2; nothing needs pasting by hand.
 
-1. Go to Supabase **SQL Editor** and run:
-
-```sql
-INSERT INTO positions (title, phase, team, is_active) VALUES
-('Regional Director', 'FOUNDATIONS', 'logistics', true),
-('Internal Associate Director', 'FOUNDATIONS', 'logistics', true),
-('External Associate Director', 'FOUNDATIONS', 'logistics', true),
-('Registration Director', 'FOUNDATIONS', 'registration', true),
-('Sports Director', 'FOUNDATIONS', 'sports', true),
-('Sisters Sports Lead', 'BUILD', 'sports', true),
-('Brothers Sports Lead', 'BUILD', 'sports', true),
-('eSports Chair', 'STABILIZATION', 'sports', true),
-('Ops Director 1 — Command Center Lead', 'FOUNDATIONS', 'logistics', true),
-('Ops Director 2 — Communications Lead', 'FOUNDATIONS', 'logistics', true),
-('Food & Safety Chair', 'BUILD', 'logistics', true),
-('Competitions Director', 'FOUNDATIONS', 'competitions', true),
-('Judges Chair', 'BUILD', 'competitions', true),
-('Brackets Lead', 'STABILIZATION', 'competitions', true),
-('Writing & Oratory Zone Lead', 'BUILD', 'competitions', true),
-('Arts Zone Lead', 'BUILD', 'competitions', true),
-('Group Comps Zone Lead', 'BUILD', 'competitions', true),
-('Knowledge & Quran Zone Lead', 'BUILD', 'competitions', true),
-('Dream Team Director', 'FOUNDATIONS', 'dream_team', true),
-('Recruitment Lead', 'BUILD', 'dream_team', true),
-('Training & Development Lead', 'BUILD', 'dream_team', true),
-('Dream Team Member', 'EXECUTION', 'dream_team', true),
-('PR Director', 'FOUNDATIONS', 'pr', true),
-('Graphics Chair', 'BUILD', 'pr', true),
-('Marketing Chair', 'BUILD', 'pr', true),
-('Programs Director', 'FOUNDATIONS', 'programs', true),
-('Awards & Ceremonies Chair', 'STABILIZATION', 'programs', true),
-('Workshops Chair', 'STABILIZATION', 'programs', true),
-('Finance Director', 'FOUNDATIONS', 'finance', true),
-('Sponsorships Chair', 'BUILD', 'finance', true);
-```
-
-2. Seed recurring milestones:
+Optional: recurring milestones without a date (shown under "Unscheduled" on the calendar until leadership sets one):
 
 ```sql
 INSERT INTO milestones (title, is_recurring, team) VALUES
@@ -126,33 +112,61 @@ INSERT INTO milestones (title, is_recurring, team) VALUES
 
 ---
 
-## Step 6 — Set roles for existing board members
+## Step 6 — Roles and seats
 
-After signing in with a Google account, you'll be an `applicant` by default. Promote yourself to RD in Supabase:
+A person's role (regional director, AD, director, chair, member…) and team come from the **seat** they hold. Leadership assigns seats on **Portal → Positions**; accepting an application assigns the chosen seat automatically.
+
+The three leaders the app used to hard-code are seeded into `legacy_seat_assignments` (`sdin@` → Regional Director, `fhafeez@` → Internal AD, `rshaik@` → External AD); they receive their seat the first time they sign in with Google. To bootstrap a different leader before anyone can use the Positions page:
 
 ```sql
--- Make yourself Regional Director (replace with your actual email)
-UPDATE profiles SET role = 'regional_director' WHERE email = 'your@email.com';
-
--- Or Internal AD
-UPDATE profiles SET role = 'internal_ad', team = 'logistics' WHERE email = 'iad@getmistified.com';
-
--- Or External AD
-UPDATE profiles SET role = 'external_ad', team = 'logistics' WHERE email = 'ead@getmistified.com';
+-- Give someone the Regional Director seat (works before or after they sign in)
+insert into legacy_seat_assignments (email, position_slug, is_admin, source)
+values ('you@getmistified.com', 'rd', true, 'manual')
+on conflict (email) do update set position_slug = excluded.position_slug;
+select public.apply_legacy_seats_all();
 ```
+
+Nobody can change their own role, seat or team through the API; `profiles_guard_privileged` rejects it.
 
 ---
 
-## Step 7 — Add MIST Dallas logo
+## Step 7 — The 2027 Handbook data
+
+If you adopted the handbook's project (Step 2), `02-after-migrations.sql` has already carried every organizer over with the same account ids, so nothing more is needed here.
+
+For a fresh project instead, `scripts/sync-handbook-data.mjs` carries the handbook's 29 organizer profiles over **by email**, so each organizer gets their seat and workbook the first time they sign in here with Google.
+
+```bash
+# Write SQL to a git-ignored file and print a summary (fetches the handbook project with its public key)
+node scripts/sync-handbook-data.mjs
+
+# …or apply straight into this project with the service role
+node --env-file=.env.local scripts/sync-handbook-data.mjs --apply
+```
+
+The summary lists every warning. The one known case: an organizer whose handbook email has a misspelled domain (`getmistfied.com`). Leadership fixes such rows directly in `legacy_seat_assignments` (change the email, then run `select public.apply_legacy_seats_all();`). The generated file lives under `supabase/seed/local/`, which is git-ignored because it is a roster of real people.
+
+See `docs/cutover.md` for the full retirement checklist for the old portal.
+
+---
+
+## Step 8 — Logo and gallery pictures
 
 Place the logo file at:
 ```
 /public/logo.png
 ```
 
+The landing page and `/gallery` read pictures from a public Storage bucket named `gallery`. To copy the pictures from the live site into your project's bucket:
+
+```bash
+node scripts/copy-gallery.mjs --dry-run                  # lists what it found on mistdallas.org
+node --env-file=.env.local scripts/copy-gallery.mjs      # creates the bucket if needed and uploads
+```
+
 ---
 
-## Step 8 — Run locally
+## Step 9 — Run locally
 
 ```bash
 npm run dev
@@ -160,13 +174,19 @@ npm run dev
 
 Visit `http://localhost:3000`
 
+Tests run against an in-process Postgres (PGlite) that applies `schema.sql` and every migration, so schema changes are covered without a Supabase project:
+
+```bash
+npm test
+```
+
 ---
 
-## Step 9 — Deploy to Vercel
+## Step 10 — Deploy to Vercel
 
 1. Go to [vercel.com](https://vercel.com) → Import from GitHub → select `ryhanshaikutd/mistdallas`
-2. Add all environment variables from `.env.local` in Vercel's project settings
-3. Deploy — done
+2. Add all environment variables from `.env.local` in Vercel's project settings (including the Resend and `CRON_SECRET` ones from Step 4)
+3. Deploy — done. The cron in `vercel.json` is registered automatically.
 
 ### Domain setup
 1. Purchase `mistdallas.org` on Namecheap (~$12/yr)
@@ -182,13 +202,15 @@ Once everything is live, open a recruitment cycle from Supabase SQL Editor:
 ```sql
 -- Open internal recruitment
 INSERT INTO recruitment_cycles (year, type, opened_at)
-VALUES (2025, 'internal', now());
+VALUES (2027, 'internal', now());
 
 -- Switch to external (run this after internal closes)
-UPDATE recruitment_cycles SET type = 'external' WHERE year = 2025;
+UPDATE recruitment_cycles SET type = 'external' WHERE year = 2027;
 
 -- Close recruitment
-UPDATE recruitment_cycles SET type = 'closed', closed_at = now() WHERE year = 2025;
+UPDATE recruitment_cycles SET type = 'closed', closed_at = now() WHERE year = 2027;
 ```
 
-Or hit the API: `POST /api/cycle` with `{ "type": "internal", "year": 2025 }` (requires RD/AD auth).
+Or hit the API: `POST /api/cycle` with `{ "type": "internal", "year": 2027 }` (requires RD/AD auth).
+
+Then open the seats you are hiring for on **Portal → Positions** (the "Open" toggle); applicants can only rank open seats.

@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# superpowers plan workspaces (scratch)
+.superpowers/
+
+# generated local seed data (contains personal data, never commit)
+/supabase/seed/local/

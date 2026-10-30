@@ -1,3 +1,6 @@
+import type { PhaseId } from "../workbook/types";
+import type { WorkbookPhaseData } from "../workbook/progress";
+
 export type UserRole =
   | 'regional_director'
   | 'internal_ad'
@@ -10,6 +13,7 @@ export type UserRole =
   | 'applicant'
 
 export type Team =
+  | 'exec'
   | 'competitions'
   | 'logistics'
   | 'dream_team'
@@ -20,6 +24,8 @@ export type Team =
   | 'programs'
 
 export type PositionPhase = 'FOUNDATIONS' | 'BUILD' | 'STABILIZATION' | 'EXECUTION'
+
+export type Priority = 'low' | 'medium' | 'high' | 'critical'
 
 export type ApplicationStatus =
   | 'submitted'
@@ -43,6 +49,7 @@ export interface Profile {
   fun_fact: string | null
   role: UserRole
   team: Team | null
+  position_id: string | null
   avatar_url: string | null
   theme: 'light' | 'dark'
   nav_style: 'sidebar' | 'topnav'
@@ -52,11 +59,31 @@ export interface Profile {
 
 export interface Position {
   id: string
+  slug: string | null
   title: string
   phase: PositionPhase
   team: Team
   description: string | null
   is_active: boolean
+  reports_to_position_id: string | null
+  role_tier: UserRole
+  is_exec: boolean
+  open_for_applications: boolean
+  max_holders: number | null
+  sort_order: number
+}
+
+export interface SeasonSettings {
+  year: number
+  tournament_start: string
+  tournament_end: string
+  applications_due: string | null
+  foundations_start: string
+  build_start: string
+  stabilization_start: string
+  execution_start: string
+  season_end: string
+  is_current: boolean
 }
 
 export interface RecruitmentCycle {
@@ -159,12 +186,117 @@ export interface Task {
 
 export interface Milestone {
   id: string
+  legacy_id: string | null
   title: string
   description: string | null
   target_date: string | null
+  date_label: string | null
+  phase: PositionPhase | null
+  priority: Priority
+  deadline_type: string
+  owner_label: string
+  send_reminders: boolean
   is_recurring: boolean
   team: Team | null
+  created_by: string | null
   created_at: string
+  updated_at: string
+}
+
+export type AnnouncementAudience = 'all' | 'board' | 'leadership' | 'team'
+
+export interface Announcement {
+  id: string
+  legacy_id: string | null
+  title: string
+  body: string
+  audience: AnnouncementAudience
+  audience_team: Team | null
+  priority: Priority
+  is_active: boolean
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface WorkbookProgressRow {
+  user_id: string
+  position_slug: string
+  phase: PhaseId
+  data: WorkbookPhaseData
+  percent_complete: number
+  updated_at: string
+}
+
+export type ReminderLeadTime = 1 | 3 | 7 | 14
+
+export interface ReminderPreference {
+  user_id: string
+  email_enabled: boolean
+  days_before: ReminderLeadTime
+  created_at: string
+  updated_at: string
+}
+
+export interface MeetingNote {
+  id: string
+  title: string
+  meeting_date: string
+  team: Team | null
+  agenda: string
+  blockers: string
+  action_items: string
+  created_by: string | null
+  created_at: string
+  updated_at: string
+  author?: Pick<Profile, 'id' | 'full_name'> | null
+}
+
+export const DECISION_CATEGORIES = [
+  'General', 'Budget', 'Venue', 'Roles', 'Competitions', 'Marketing', 'Programs', 'Registration', 'Sports', 'Event Weekend',
+] as const
+export type DecisionCategory = (typeof DECISION_CATEGORIES)[number]
+
+export interface Decision {
+  id: string
+  title: string
+  category: DecisionCategory
+  decision: string
+  rationale: string
+  owner_label: string
+  team: Team | null
+  decided_on: string
+  created_by: string | null
+  created_at: string
+  updated_at: string
+  author?: Pick<Profile, 'id' | 'full_name'> | null
+}
+
+export interface FeedbackTheme {
+  id: string
+  slug: string | null
+  theme: string
+  source: string
+  sentiment: string
+  owner_label: string
+  phase: PositionPhase | null
+  status: string
+  color: string | null
+  action: string
+  sort_order: number
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface LegacySeatAssignment {
+  email: string
+  full_name: string | null
+  position_slug: string | null
+  is_admin: boolean
+  source: string
+  created_at: string
+  applied_at: string | null
 }
 
 export interface AttendanceRecord {

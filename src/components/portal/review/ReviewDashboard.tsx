@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
-import type { Profile, Position } from "@/lib/types";
+import type { Profile, Position, ApplicationStatus } from "@/lib/types";
+import { decideApplication } from "@/app/portal/review/actions";
 import { TEAM_LABELS } from "@/lib/constants";
 import {
   Search, Filter, ChevronDown, ChevronUp, Star,
@@ -63,7 +64,7 @@ const STATUS_LABELS: Record<string, string> = {
   offered_different_position: "Alt. Position",
 };
 
-export default function ReviewDashboard({ applications: initial, profile }: Props) {
+export default function ReviewDashboard({ applications: initial, positions, profile }: Props) {
   const supabase = createClient();
   const [apps, setApps] = useState(initial);
   const [search, setSearch] = useState("");
@@ -75,6 +76,9 @@ export default function ReviewDashboard({ applications: initial, profile }: Prop
   const [knowsContext, setKnowsContext] = useState("");
   const [addingNote, setAddingNote] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [acceptPosition, setAcceptPosition] = useState("");
+  const seatOptions = [...positions].sort((a, b) => a.sort_order - b.sort_order);
 
   const filtered = apps.filter((a) => {
     const matchSearch =
@@ -88,17 +92,18 @@ export default function ReviewDashboard({ applications: initial, profile }: Prop
     return matchSearch && matchStatus && matchType;
   });
 
-  async function updateStatus(appId: string, status: string, altPositionId?: string) {
+  async function updateStatus(appId: string, status: ApplicationStatus, positionId?: string | null) {
     setUpdatingStatus(appId);
-    const { error } = await supabase
-      .from("applications")
-      .update({ status, ...(altPositionId ? { alternate_position_id: altPositionId } : {}) })
-      .eq("id", appId);
-    if (error) {
-      toast.error("Failed to update status.");
+    const result = await decideApplication({ applicationId: appId, status, positionId });
+    if (!result.success) {
+      toast.error(result.error);
     } else {
       setApps((prev) => prev.map((a) => a.id === appId ? { ...a, status } : a));
-      toast.success("Status updated.");
+      setAcceptingId(null);
+      const label = STATUS_LABELS[status] ?? status;
+      if (result.emailed) toast.success(`${label} · email sent`);
+      else if (result.emailError) toast.success(`${label} · email not sent: ${result.emailError}`);
+      else toast.success(`${label}.`);
     }
     setUpdatingStatus(null);
   }
@@ -392,7 +397,14 @@ export default function ReviewDashboard({ applications: initial, profile }: Prop
                           return (
                             <button
                               key={opt.value}
-                              onClick={() => updateStatus(app.id, opt.value)}
+                              onClick={() => {
+                                if (opt.value === "accepted") {
+                                  setAcceptingId(app.id);
+                                  setAcceptPosition(ranked[0]?.position?.id ?? "");
+                                } else {
+                                  updateStatus(app.id, opt.value as ApplicationStatus);
+                                }
+                              }}
                               disabled={updatingStatus === app.id || app.status === opt.value}
                               style={app.status === opt.value
                                 ? { borderColor: "#1B3464", background: "#EEF2F9", color: "#1B3464" }
@@ -405,6 +417,36 @@ export default function ReviewDashboard({ applications: initial, profile }: Prop
                           );
                         })}
                       </div>
+                      {acceptingId === app.id && (
+                        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border p-3" style={{ borderColor: "var(--p-border)", background: "var(--p-card-hover)" }}>
+                          <span className="text-xs font-medium" style={{ color: "var(--p-text-secondary)" }}>Assign seat:</span>
+                          <select
+                            value={acceptPosition}
+                            onChange={(e) => setAcceptPosition(e.target.value)}
+                            aria-label="Seat to assign on acceptance"
+                            style={{ background: "var(--p-card)", borderColor: "var(--p-border)", color: "var(--p-text)" }}
+                            className="border rounded-lg px-2 py-1.5 text-xs focus:outline-none"
+                          >
+                            <option value="">Choose a seat…</option>
+                            {ranked.map((r) => r.position && (
+                              <option key={`ranked-${r.rank}`} value={r.position.id}>#{r.rank} {r.position.title}</option>
+                            ))}
+                            <option disabled>──────────</option>
+                            {seatOptions.map((pos) => (
+                              <option key={pos.id} value={pos.id}>{pos.title} · {TEAM_LABELS[pos.team]}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => updateStatus(app.id, "accepted", acceptPosition || null)}
+                            disabled={!acceptPosition || updatingStatus === app.id}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-40"
+                            style={{ background: "#10B981" }}
+                          >
+                            Confirm accept
+                          </button>
+                          <button onClick={() => setAcceptingId(null)} className="text-xs" style={{ color: "var(--p-muted)" }}>Cancel</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

@@ -1,16 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { isLeadership } from "@/lib/constants";
+import { requireLeadership } from "@/lib/auth";
 import ReviewDashboard from "@/components/portal/review/ReviewDashboard";
 
 export default async function ReviewPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-
-  if (!isLeadership(profile?.role)) redirect("/portal");
+  const { profile, supabase } = await requireLeadership();
 
   const { data: applications } = await supabase
     .from("applications")
@@ -24,7 +16,7 @@ export default async function ReviewPage() {
     `)
     .order("created_at", { ascending: false });
 
-  const { data: positions } = await supabase.from("positions").select("*").eq("is_active", true);
+  const { data: positions } = await supabase.from("positions").select("*").eq("is_active", true).order("sort_order");
 
   return <ReviewDashboard applications={applications ?? []} positions={positions ?? []} profile={profile} />;
 }

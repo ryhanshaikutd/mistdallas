@@ -2,27 +2,16 @@
 
 import { usePathname } from "next/navigation";
 import type { Profile } from "@/lib/types";
+import { titleFor } from "./nav";
 
 interface Props { profile: Profile | null }
-
-const TITLES: Record<string, string> = {
-  "/portal": "Dashboard",
-  "/portal/apply": "Apply",
-  "/portal/review": "Applications",
-  "/portal/interviews": "Interviews",
-  "/portal/planning": "Planning",
-  "/portal/insights": "Insights",
-  "/portal/settings": "Settings",
-};
 
 export default function PortalHeader({ profile }: Props) {
   const pathname = usePathname();
   // Dashboard has its own greeting — no header needed there
   if (pathname === "/portal") return null;
 
-  const title = Object.entries(TITLES).find(([key]) =>
-    key === "/portal" ? pathname === key : pathname.startsWith(key)
-  )?.[1] ?? "Portal";
+  const title = titleFor(pathname);
   const displayName = profile?.preferred_name || profile?.full_name?.split(" ")[0] || "there";
 
   return (
