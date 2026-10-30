@@ -31,7 +31,8 @@ Without Supabase keys the public pages still render (with empty data) and the po
 | `npm run start` | Serve the production build       |
 | `npm run lint`  | ESLint (`npx tsc --noEmit` for types) |
 | `npm test`      | Unit and migration tests (Vitest + PGlite) |
-| `node scripts/sync-handbook-data.mjs` | Carry the old handbook portal's organizers over by email (see SETUP.md step 7) |
+| `node scripts/sync-handbook-data.mjs` | Carry the old handbook portal's organizers over by email into a fresh project (SETUP.md step 7) |
+| `node scripts/copy-gallery.mjs` | Copy the public gallery pictures into the project's `gallery` bucket (SETUP.md step 8) |
 
 ## Project layout
 
@@ -41,7 +42,7 @@ src/components/     landing, nationals, and portal UI (one folder per portal fea
 src/lib/            auth helpers, constants, roster/deadline/workbook logic, email, csv
 src/lib/workbook/   generated workbook content (34 roles) and progress math
 src/lib/supabase/   server, browser, public (cookie-free) and admin clients; proxy session refresh
-supabase/           schema.sql, migrations/ (run in order), seed data
+supabase/           schema.sql, migrations/ (run in order), adopt-handbook/ (reuse the handbook project)
 scripts/            one-time converters and the handbook data sync
 tests/db/           PGlite harness and migration tests
 ```

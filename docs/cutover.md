@@ -1,36 +1,60 @@
-# Retiring the 2027 Handbook portal
+# Cutover: one site on one Supabase project
 
-The organizer portal at `organizers.mistdallas.org` (GitHub Pages repo `salwadin/mistdallas2027handbook`, Supabase project `pgdrhoifisonmzuaeetu`) is replaced by `mistdallas.org/portal`. Work through this list in order.
+The merged portal runs on the **2027 Handbook portal's Supabase project** (`pgdrhoifisonmzuaeetu`), because it holds the 29 organizer accounts. The old mistdallas project (`xgocnplfuwicxejmlndh`) contributes only its gallery pictures. Work through this list in order; every SQL file is safe to re-run.
 
-## 1. Database
+## 0. Access
 
-- [ ] In the mistdallas Supabase project, run the migrations in the order listed in `SETUP.md` step 2. Run `20261029_00_exec_team.sql` on its own first.
-- [ ] Confirm: `select count(*) from positions where is_active` = 35, `select count(*) from milestones where legacy_id is not null` = 46, one row in `season_settings` with `is_current`.
+- [ ] Handbook project → Project Settings → API: put the URL, anon key and service-role key into `.env.local` (and later into Vercel).
+- [ ] Optional snapshot for the record: `node scripts/sync-handbook-data.mjs` writes a git-ignored SQL copy of the roster. Only needed later if the adoption reports checked workbook items it could not map.
 
-## 2. People
+## 1. Database (Supabase SQL editor, exactly this order)
 
-- [ ] Run `node --env-file=.env.local scripts/sync-handbook-data.mjs --apply` once from a checkout with the production keys in `.env.local`. It upserts 29 legacy seat rows and reports how many already-registered profiles matched.
-- [ ] Read the warnings. Fix any misspelled email in `legacy_seat_assignments` (there is one, in the `getmistfied.com` domain), then `select public.apply_legacy_seats_all();`.
-- [ ] Ask the Regional Director and both Associate Directors to sign in with Google and confirm on **Portal → Positions** that their seats are filled. Anyone else gets their seat the first time they sign in with the same email they used on the old portal.
-- [ ] For organizers who used a different email on the old portal, assign the seat from **Positions** instead.
+1. `supabase/adopt-handbook/01-before-schema.sql` — renames every handbook table that holds rows to `handbook_<name>` and drops empty ones. Nothing is deleted that has data.
+2. `supabase/schema.sql`
+3. `supabase/migrations/20261014_audit_fixes.sql`
+4. `supabase/migrations/20261029_00_exec_team.sql` — **run alone**
+5. `supabase/migrations/20261029_01_positions_seats.sql` through `20261029_05_tournament_mymist.sql`
+6. `supabase/adopt-handbook/02-after-migrations.sql` — copies the organizers into the new `profiles` with the same ids, turns their old roles into seats, carries reminder preferences and workbook notes over.
 
-## 3. Email and cron (Vercel)
+Check afterwards:
 
-- [ ] Add `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL` to the Vercel project and redeploy.
-- [ ] Check Vercel → Settings → Cron Jobs shows `/api/cron/reminders` daily; trigger it once from the dashboard and confirm it returns `ok: true`.
+```sql
+select count(*) from profiles;                                  -- = number of handbook organizers (29)
+select count(*) from positions where is_active;                 -- 35
+select count(*) from milestones where legacy_id is not null;    -- 46
+select email, position_slug from legacy_seat_assignments
+ where source = 'handbook-adoption' and position_slug is null;  -- anyone whose old role has no seat
+```
 
-## 4. Old domain
+The script prints a NOTICE if any handbook workbook row had checked deliverables; those cannot be mapped in SQL. If it matters, run `scripts/sync-handbook-data.mjs --from <export dir>` with the snapshot from step 0.
 
-- [ ] In the handbook repo, replace `index.html` with a meta-refresh and a link to `https://mistdallas.org/portal`, keep `CNAME`, and push. GitHub Pages will serve the redirect at `organizers.mistdallas.org`.
-- [ ] Update anywhere the old URL was shared (group chats, the Google Drive onboarding doc, the reminder emails' Resend sender if it differed).
+## 2. Sign-in
 
-## 5. Old Supabase project
+- [ ] Supabase → Authentication → Providers → Google: enable it with the Google Cloud client id and secret.
+- [ ] Google Cloud → the OAuth client: add `https://pgdrhoifisonmzuaeetu.supabase.co/auth/v1/callback` as an authorized redirect URI.
+- [ ] Supabase → Authentication → URL configuration: site URL `https://mistdallas.org`; redirect URLs `https://mistdallas.org/auth/callback` and `http://localhost:3000/auth/callback`.
+- [ ] Leave the Email provider on: existing accounts were created with it, and a Google sign-in with the same verified email links to the existing account automatically, keeping the user id and seat.
 
-- [ ] Leave it running, read-only in practice, for two weeks after the redirect.
-- [ ] Then pause the project. Nothing in mistdallas reads from it after step 2.
+## 3. Pictures
+
+- [ ] `node scripts/copy-gallery.mjs --dry-run` lists the objects found on the live site (19 today).
+- [ ] `node --env-file=.env.local scripts/copy-gallery.mjs` creates a public `gallery` bucket on the handbook project and uploads them.
+
+## 4. Deploy
+
+- [ ] Vercel environment: the handbook project's `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`; plus `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `CRON_SECRET`, `NEXT_PUBLIC_SITE_URL` (see SETUP.md step 4). Google Calendar variables as before.
+- [ ] Merge the PR and deploy. If the existing Vercel project is not yours, import the repo into your own account and move the `mistdallas.org` domain when ready.
+- [ ] Smoke test: sign in as one of the three leaders → **Positions** shows the seats filled; `/gallery` shows the pictures; the dashboard shows the season tiles and the welcome announcement.
+- [ ] Open the seats you are hiring for on **Positions** before announcing the application link; applicants can only rank open seats.
+
+## 5. Old site and old data
+
+- [ ] Replace the handbook repo's `index.html` with a meta-refresh to `https://mistdallas.org/portal`, keep `CNAME`, push. GitHub Pages then redirects `organizers.mistdallas.org`.
+- [ ] Pause the mistdallas Supabase project once the gallery copy is verified; nothing reads it afterwards.
+- [ ] After a few weeks, drop the `handbook_*` tables in the handbook project (`drop table handbook_profiles, handbook_deadline_events, handbook_announcements, handbook_workbook_progress, handbook_reminder_preferences cascade;` plus any others `01` renamed). Until then they are readable only by the service role.
 
 ## Not carried over (by decision)
 
-- The handbook's in-portal chat (`messages`): zero rows, nobody used it.
-- The handbook's 24-question application form: mistdallas's validated form stays.
-- Tournament-weekend and MyMIST tables: the schema exists in mistdallas (migration 05) but the room/block/student/NFC pages are a separate, later project.
+- The handbook's in-portal chat (`messages`): zero rows.
+- The handbook's 24-question application form: the validated form in this app stays.
+- Tournament-weekend and MyMIST tables: the schema exists (migration 05) but the room/block/student/NFC pages are a separate, later project.

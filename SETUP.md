@@ -24,9 +24,9 @@ cp .env.local.example .env.local
 
 ## Step 2 — Supabase setup
 
-1. Go to [supabase.com](https://supabase.com) → New Project → name it `mistdallas`
+1. Pick the project. **Recommended:** adopt the 2027 Handbook portal's existing project, which already holds the organizer accounts; run `supabase/adopt-handbook/01-before-schema.sql` first and `supabase/adopt-handbook/02-after-migrations.sql` last (see `docs/cutover.md`). Otherwise create a fresh project named `mistdallas`.
 2. Go to **SQL Editor** and run, in this order:
-   1. `supabase/schema.sql` (fresh projects only)
+   1. `supabase/schema.sql`
    2. `supabase/migrations/20261014_audit_fixes.sql`
    3. `supabase/migrations/20261029_00_exec_team.sql` — **run this file on its own**: it adds an enum value, and Postgres will not let the same transaction use that value
    4. `supabase/migrations/20261029_01_positions_seats.sql`
@@ -35,7 +35,9 @@ cp .env.local.example .env.local
    7. `supabase/migrations/20261029_04_meetings_feedback.sql`
    8. `supabase/migrations/20261029_05_tournament_mymist.sql`
 
-   Every migration is idempotent, so re-running one is safe. Together they seed the 35-seat position catalog, the 2027 season settings, 46 season milestones, the welcome announcement and five feedback themes.
+   9. `supabase/adopt-handbook/02-after-migrations.sql` (adopted project only)
+
+   Every file is idempotent, so re-running one is safe. Together they seed the 35-seat position catalog, the 2027 season settings, 46 season milestones, the welcome announcement and five feedback themes.
 3. Go to **Project Settings → API**:
    - Copy `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
    - Copy `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -128,9 +130,11 @@ Nobody can change their own role, seat or team through the API; `profiles_guard_
 
 ---
 
-## Step 7 — Syncing the 2027 Handbook data
+## Step 7 — The 2027 Handbook data
 
-The old organizer portal (`organizers.mistdallas.org`, GitHub Pages + its own Supabase project) held 29 organizer profiles with their roles. `scripts/sync-handbook-data.mjs` carries them over **by email**, so each organizer gets their seat and workbook the first time they sign in here with Google.
+If you adopted the handbook's project (Step 2), `02-after-migrations.sql` has already carried every organizer over with the same account ids, so nothing more is needed here.
+
+For a fresh project instead, `scripts/sync-handbook-data.mjs` carries the handbook's 29 organizer profiles over **by email**, so each organizer gets their seat and workbook the first time they sign in here with Google.
 
 ```bash
 # Write SQL to a git-ignored file and print a summary (fetches the handbook project with its public key)
@@ -146,11 +150,18 @@ See `docs/cutover.md` for the full retirement checklist for the old portal.
 
 ---
 
-## Step 8 — Add MIST Dallas logo
+## Step 8 — Logo and gallery pictures
 
 Place the logo file at:
 ```
 /public/logo.png
+```
+
+The landing page and `/gallery` read pictures from a public Storage bucket named `gallery`. To copy the pictures from the live site into your project's bucket:
+
+```bash
+node scripts/copy-gallery.mjs --dry-run                  # lists what it found on mistdallas.org
+node --env-file=.env.local scripts/copy-gallery.mjs      # creates the bucket if needed and uploads
 ```
 
 ---
