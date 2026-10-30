@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { actorWithRole, type ActionResult } from "@/lib/auth";
 import { LEADERSHIP_ROLES } from "@/lib/constants";
 
-const NOT_ALLOWED: ActionResult = { success: false, error: "Only leadership can change seats." };
+const NOT_ALLOWED_MESSAGE = "Only leadership can change seats.";
+const NOT_ALLOWED: ActionResult = { success: false, error: NOT_ALLOWED_MESSAGE };
 
 function revalidateSeats() {
   for (const p of ["/portal/positions", "/portal/teams", "/portal/directory", "/portal/progress", "/portal/command", "/portal"]) {
@@ -16,7 +17,7 @@ function friendlySeatError(message: string): string {
   if (/position_full/.test(message)) return "That seat is full.";
   if (/position_not_found/.test(message)) return "That seat no longer exists.";
   if (/profile_not_found/.test(message)) return "That person no longer has a profile.";
-  if (/forbidden/.test(message)) return NOT_ALLOWED.error;
+  if (/forbidden/.test(message)) return NOT_ALLOWED_MESSAGE;
   return message;
 }
 
