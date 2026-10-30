@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import fs from "node:fs";
 import type { PGlite } from "@electric-sql/pglite";
-import { createTestDb, migrationFiles } from "./harness";
+import { createTestDb, migrationFiles, signUp, asUser } from "./harness";
 
 type Row = Record<string, unknown>;
 const one = async (db: PGlite, sql: string, params: unknown[] = []) => (await db.query<Row>(sql, params)).rows[0];
@@ -55,5 +55,34 @@ describe("season settings, milestones and announcements migration", () => {
       db.query(`insert into season_settings (year, tournament_start, tournament_end, foundations_start, build_start, stabilization_start, execution_start, season_end, is_current)
         values (2028, '2028-03-23', '2028-03-26', '2027-09-01', '2027-10-15', '2027-12-01', '2028-02-01', '2028-04-11', true)`)
     ).rejects.toThrow(/one_current/);
+  });
+  describe("announcement audiences are enforced by RLS", () => {
+    const APPLICANT = "a1a1a1a1-0000-4000-8000-000000000001";
+    const CHAIR = "c1c1c1c1-0000-4000-8000-000000000001";
+    const RD = "d1d1d1d1-0000-4000-8000-000000000001";
+
+    const titles = async () => (await db.query<{ title: string }>("select title from announcements order by title")).rows.map((r) => r.title);
+
+    it("shows each reader only the announcements meant for them", async () => {
+      await signUp(db, { id: APPLICANT, email: "app@example.com" });
+      await signUp(db, { id: CHAIR, email: "chair@example.com" });
+      await signUp(db, { id: RD, email: "rd@example.com" });
+      await db.query("select public.assign_seat($1, 'marketing-coord')", [CHAIR]);
+      await db.query("select public.assign_seat($1, 'rd')", [RD]);
+      await db.exec(`insert into announcements (title, audience, audience_team, is_active) values
+        ('Board only', 'board', null, true),
+        ('Leaders only', 'leadership', null, true),
+        ('Marketing only', 'team', 'pr', true),
+        ('Sports only', 'team', 'sports', true),
+        ('Old news', 'all', null, false)`);
+
+      await asUser(db, APPLICANT);
+      expect(await titles()).toEqual(["Welcome to the MIST Dallas 2027 portal"]);
+      await asUser(db, CHAIR);
+      expect(await titles()).toEqual(["Board only", "Marketing only", "Welcome to the MIST Dallas 2027 portal"]);
+      await asUser(db, RD);
+      expect(await titles()).toEqual(["Board only", "Leaders only", "Marketing only", "Old news", "Sports only", "Welcome to the MIST Dallas 2027 portal"]);
+      await asUser(db, null);
+    });
   });
 });

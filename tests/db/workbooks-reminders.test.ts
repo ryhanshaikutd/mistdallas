@@ -71,4 +71,25 @@ describe("workbook progress and reminders migration", () => {
     expect(r).toMatchObject({ position_slug: "arts", phase: "foundations", notes: "hi" });
     expect(String(r.updated_at)).toContain("2026-09-24");
   });
+  it("a sign-up still succeeds when the legacy progress copy fails, and applied_at is only set when the seat was taken", async () => {
+    const U4 = "44444444-4444-4444-8444-444444444444";
+    const U5 = "55555555-5555-4555-8555-555555555555";
+    // Simulate a stricter future constraint the legacy data violates.
+    await db.exec("alter table workbook_progress add constraint tmp_low_percent check (percent_complete < 50)");
+    await db.query("insert into legacy_seat_assignments (email, full_name, position_slug) values ('yy@example.com', 'Why', 'brackets')");
+    await db.query("insert into legacy_workbook_progress (email, position_slug, phase, data, percent_complete) values ('yy@example.com', 'brackets', 'build', '{\"checks\":{},\"notes\":\"x\",\"fields\":{}}', 90)");
+    await signUp(db, { id: U4, email: "yy@example.com" });
+    const u4 = await one(db, "select p.role::text as role, pos.slug, (select count(*)::int from workbook_progress where user_id = p.id) as rows from profiles p left join positions pos on pos.id = p.position_id where p.id = $1", [U4]);
+    expect(u4).toEqual({ role: "chair", slug: "brackets", rows: 0 });
+    expect((await one(db, "select applied_at from legacy_seat_assignments where email = 'yy@example.com'")).applied_at).not.toBeNull();
+    await db.exec("alter table workbook_progress drop constraint tmp_low_percent");
+
+    // A full seat is skipped: the profile stays an applicant and the legacy row stays unapplied.
+    await db.exec("update positions set max_holders = 1 where slug = 'brackets'");
+    await db.query("insert into legacy_seat_assignments (email, full_name, position_slug) values ('xx@example.com', 'Ex', 'brackets')");
+    await signUp(db, { id: U5, email: "xx@example.com" });
+    const u5 = await one(db, "select role::text as role, position_id, full_name from profiles where id = $1", [U5]);
+    expect(u5).toEqual({ role: "applicant", position_id: null, full_name: "Ex" });
+    expect((await one(db, "select applied_at from legacy_seat_assignments where email = 'xx@example.com'")).applied_at).toBeNull();
+  });
 });

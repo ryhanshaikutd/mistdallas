@@ -155,6 +155,26 @@ $$;
 revoke all on function public.is_board() from public;
 grant execute on function public.is_board() to authenticated, anon;
 
+create or replace function public.current_user_team()
+returns team_type language sql stable security definer set search_path = public as $$
+  select team from profiles where id = auth.uid();
+$$;
+revoke all on function public.current_user_team() from public;
+grant execute on function public.current_user_team() to authenticated, anon;
+
+-- Seats are changed by the service role (server actions), by SQL run as the
+-- project owner, or by signed-in leadership. The public anon key and ordinary
+-- signed-in users are refused even if they reach a seat function.
+create or replace function public.assert_seat_manager()
+returns void language plpgsql stable security definer set search_path = public as $$
+begin
+  if coalesce(auth.role(), '') in ('anon', 'authenticated') and not public.is_leadership() then
+    raise exception 'forbidden';
+  end if;
+end;
+$$;
+revoke all on function public.assert_seat_manager() from public, anon, authenticated;
+
 create policy "Leadership can manage positions" on positions
   for all using (public.is_leadership()) with check (public.is_leadership());
 
@@ -162,7 +182,8 @@ create policy "Leadership can manage positions" on positions
 alter table profiles add column if not exists position_id uuid references positions(id) on delete set null;
 create index if not exists profiles_position_id_idx on profiles (position_id);
 
--- 3a. Nobody changes their own role, seat or team through the API. Server
+-- 3a. Nobody changes their own role, seat, team or email through the API
+--     (email is what legacy seats are matched on). Server
 --     actions use the service role (auth.uid() is null) and leadership edits
 --     other people's rows, so both keep working.
 create or replace function public.guard_privileged_profile_columns()
@@ -172,6 +193,7 @@ begin
        new.role is distinct from old.role
     or new.position_id is distinct from old.position_id
     or new.team is distinct from old.team
+    or new.email is distinct from old.email
   ) then
     raise exception 'privileged profile columns can only be changed by leadership';
   end if;
@@ -202,7 +224,7 @@ create table if not exists legacy_workbook_progress (
   position_slug text not null,
   phase text not null check (phase in ('foundations', 'build', 'stabilization', 'execution')),
   data jsonb not null default '{}'::jsonb,
-  percent_complete int not null default 0,
+  percent_complete int not null default 0 check (percent_complete between 0 and 100),
   updated_at timestamptz,
   primary key (email, position_slug, phase)
 );
@@ -219,17 +241,16 @@ insert into legacy_seat_assignments (email, position_slug, is_admin, source) val
 on conflict (email) do nothing;
 
 -- 5. Seat functions ─────────────────────────────────────────────────────────
--- Callable by the service role (server actions) or by leadership. A signed-in
--- non-leader gets 'forbidden'.
+-- Executable only by the service role (server actions) and the project owner;
+-- see the REVOKEs at the end of this section. assert_seat_manager() is a
+-- second line of defence inside each function.
 create or replace function public.assign_seat(p_profile_id uuid, p_position_slug text)
 returns void language plpgsql security definer set search_path = public as $$
 declare
   pos positions%rowtype;
   holders int;
 begin
-  if auth.uid() is not null and not public.is_leadership() then
-    raise exception 'forbidden';
-  end if;
+  perform public.assert_seat_manager();
   select * into pos from positions where slug = p_position_slug and is_active;
   if not found then
     raise exception 'position_not_found: %', p_position_slug;
@@ -250,9 +271,7 @@ $$;
 create or replace function public.unassign_seat(p_profile_id uuid)
 returns void language plpgsql security definer set search_path = public as $$
 begin
-  if auth.uid() is not null and not public.is_leadership() then
-    raise exception 'forbidden';
-  end if;
+  perform public.assert_seat_manager();
   update profiles
      set position_id = null,
          role = case when role in ('regional_director', 'internal_ad', 'external_ad') then role else 'member' end
@@ -260,33 +279,71 @@ begin
 end;
 $$;
 
+-- Accepting an application: seat + status + alternate seat in one transaction,
+-- so a failure (full seat, missing position) leaves the application untouched.
+create or replace function public.accept_application(p_application_id uuid, p_position_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  app applications%rowtype;
+  pos positions%rowtype;
+  first_choice uuid;
+begin
+  perform public.assert_seat_manager();
+  select * into app from applications where id = p_application_id;
+  if not found then
+    raise exception 'application_not_found: %', p_application_id;
+  end if;
+  select * into pos from positions where id = p_position_id and is_active and slug is not null;
+  if not found then
+    raise exception 'position_not_found: %', p_position_id;
+  end if;
+  perform public.assign_seat(app.applicant_id, pos.slug);
+  select position_id into first_choice from application_rankings where application_id = app.id order by rank limit 1;
+  update applications
+     set status = 'accepted',
+         alternate_position_id = case when first_choice = pos.id then null else pos.id end
+   where id = app.id;
+end;
+$$;
+
 -- Applies a legacy seat (matched on lower-cased email) to one profile.
--- Returns true when a legacy row matched. Safe to call repeatedly; a full seat
--- is skipped rather than failing the caller (this runs inside the signup trigger).
+-- Returns true when a legacy row matched. Safe to call repeatedly, and it runs
+-- inside the sign-up trigger, so nothing in here may fail the caller: a full
+-- seat is skipped (applied_at stays null) and name copying is best effort.
 create or replace function public.apply_legacy_seat(p_profile_id uuid)
 returns boolean language plpgsql security definer set search_path = public as $$
 declare
   prof profiles%rowtype;
   legacy legacy_seat_assignments%rowtype;
+  seated boolean := false;
 begin
   select * into prof from profiles where id = p_profile_id;
   if not found then return false; end if;
   select * into legacy from legacy_seat_assignments where email = lower(prof.email);
   if not found then return false; end if;
 
-  if legacy.position_slug is not null then
+  if legacy.position_slug is null then
+    seated := true;
+  else
     begin
       perform public.assign_seat(p_profile_id, legacy.position_slug);
+      seated := true;
     exception when others then
       raise notice 'apply_legacy_seat: % for %', sqlerrm, legacy.email;
     end;
   end if;
 
-  if coalesce(prof.full_name, '') = '' and coalesce(legacy.full_name, '') <> '' then
-    update profiles set full_name = legacy.full_name where id = p_profile_id;
-  end if;
+  begin
+    if coalesce(prof.full_name, '') = '' and coalesce(legacy.full_name, '') <> '' then
+      update profiles set full_name = legacy.full_name where id = p_profile_id;
+    end if;
+  exception when others then
+    raise notice 'apply_legacy_seat: % copying name for %', sqlerrm, legacy.email;
+  end;
 
-  update legacy_seat_assignments set applied_at = now() where email = legacy.email;
+  if seated then
+    update legacy_seat_assignments set applied_at = now() where email = legacy.email;
+  end if;
   return true;
 end;
 $$;
@@ -296,13 +353,27 @@ returns int language plpgsql security definer set search_path = public as $$
 declare
   n int;
 begin
-  if auth.uid() is not null and not public.is_leadership() then
-    raise exception 'forbidden';
-  end if;
+  perform public.assert_seat_manager();
   select count(*) into n from (select public.apply_legacy_seat(id) as matched from profiles) s where s.matched;
   return n;
 end;
 $$;
+
+-- Only the service role (and SQL run as the owner) may call the seat functions;
+-- the browser never does. Leadership changes seats through server actions.
+revoke all on function public.assign_seat(uuid, text) from public, anon, authenticated;
+revoke all on function public.unassign_seat(uuid) from public, anon, authenticated;
+revoke all on function public.accept_application(uuid, uuid) from public, anon, authenticated;
+revoke all on function public.apply_legacy_seat(uuid) from public, anon, authenticated;
+revoke all on function public.apply_legacy_seats_all() from public, anon, authenticated;
+do $$ begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    grant execute on function
+      public.assign_seat(uuid, text), public.unassign_seat(uuid), public.accept_application(uuid, uuid),
+      public.apply_legacy_seat(uuid), public.apply_legacy_seats_all()
+    to service_role;
+  end if;
+end $$;
 
 -- 6. New sign-ups pick up their legacy seat immediately ─────────────────────
 create or replace function handle_new_user()

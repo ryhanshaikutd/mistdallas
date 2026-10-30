@@ -6,12 +6,7 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- 1. Helpers ────────────────────────────────────────────────────────────────
-create or replace function public.current_user_team()
-returns team_type language sql stable security definer set search_path = public as $$
-  select team from profiles where id = auth.uid();
-$$;
-revoke all on function public.current_user_team() from public;
-grant execute on function public.current_user_team() to authenticated, anon;
+-- current_user_team() is defined in 20261029_01_positions_seats.sql.
 
 -- Leadership writes anywhere; directors, chairs and leads write for their own team.
 create or replace function public.can_write_team(t team_type)

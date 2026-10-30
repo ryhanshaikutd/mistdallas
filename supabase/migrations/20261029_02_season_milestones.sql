@@ -144,8 +144,18 @@ create trigger announcements_updated_at before update on announcements
 
 alter table announcements enable row level security;
 drop policy if exists "Signed-in users can read active announcements" on announcements;
-create policy "Signed-in users can read active announcements" on announcements
-  for select using (auth.uid() is not null and (is_active or public.is_leadership()));
+drop policy if exists "Readers see announcements for their audience" on announcements;
+create policy "Readers see announcements for their audience" on announcements
+  for select using (
+    auth.uid() is not null and (
+      public.is_leadership()
+      or (is_active and (
+           audience = 'all'
+        or (audience = 'board' and public.is_board())
+        or (audience = 'team' and audience_team is not null and audience_team = public.current_user_team())
+      ))
+    )
+  );
 drop policy if exists "Leadership can manage announcements" on announcements;
 create policy "Leadership can manage announcements" on announcements
   for all using (public.is_leadership()) with check (public.is_leadership());

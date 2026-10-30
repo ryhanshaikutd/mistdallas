@@ -71,36 +71,51 @@ create policy "Leadership can read reminder deliveries" on reminder_deliveries
   for select using (public.is_leadership());
 
 -- 4. Legacy seat application also carries over workbook progress ────────────
+-- Same contract as the version in 20261029_01: never fails the sign-up trigger.
 create or replace function public.apply_legacy_seat(p_profile_id uuid)
 returns boolean language plpgsql security definer set search_path = public as $$
 declare
   prof profiles%rowtype;
   legacy legacy_seat_assignments%rowtype;
+  seated boolean := false;
 begin
   select * into prof from profiles where id = p_profile_id;
   if not found then return false; end if;
   select * into legacy from legacy_seat_assignments where email = lower(prof.email);
   if not found then return false; end if;
 
-  if legacy.position_slug is not null then
+  if legacy.position_slug is null then
+    seated := true;
+  else
     begin
       perform public.assign_seat(p_profile_id, legacy.position_slug);
+      seated := true;
     exception when others then
       raise notice 'apply_legacy_seat: % for %', sqlerrm, legacy.email;
     end;
   end if;
 
-  if coalesce(prof.full_name, '') = '' and coalesce(legacy.full_name, '') <> '' then
-    update profiles set full_name = legacy.full_name where id = p_profile_id;
+  begin
+    if coalesce(prof.full_name, '') = '' and coalesce(legacy.full_name, '') <> '' then
+      update profiles set full_name = legacy.full_name where id = p_profile_id;
+    end if;
+  exception when others then
+    raise notice 'apply_legacy_seat: % copying name for %', sqlerrm, legacy.email;
+  end;
+
+  if seated then
+    begin
+      insert into workbook_progress (user_id, position_slug, phase, data, percent_complete, updated_at)
+      select p_profile_id, l.position_slug, l.phase, l.data, l.percent_complete, coalesce(l.updated_at, now())
+        from legacy_workbook_progress l
+       where l.email = legacy.email
+      on conflict (user_id, position_slug, phase) do nothing;
+    exception when others then
+      raise notice 'apply_legacy_seat: % copying progress for %', sqlerrm, legacy.email;
+    end;
+    update legacy_seat_assignments set applied_at = now() where email = legacy.email;
   end if;
-
-  insert into workbook_progress (user_id, position_slug, phase, data, percent_complete, updated_at)
-  select p_profile_id, l.position_slug, l.phase, l.data, l.percent_complete, coalesce(l.updated_at, now())
-    from legacy_workbook_progress l
-   where l.email = legacy.email
-  on conflict (user_id, position_slug, phase) do nothing;
-
-  update legacy_seat_assignments set applied_at = now() where email = legacy.email;
   return true;
 end;
 $$;
+revoke all on function public.apply_legacy_seat(uuid) from public, anon, authenticated;

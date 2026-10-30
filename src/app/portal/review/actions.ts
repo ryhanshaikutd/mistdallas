@@ -19,6 +19,7 @@ export type DecisionResult =
 function friendlySeatError(message: string): string {
   if (/position_full/.test(message)) return "That seat is full. Raise its max holders or pick another seat.";
   if (/position_not_found/.test(message)) return "That seat is not available.";
+  if (/application_not_found/.test(message)) return "Application not found.";
   return message;
 }
 
@@ -46,24 +47,24 @@ export async function decideApplication(input: {
 
   const rankings = ([...(app.application_rankings ?? [])] as { rank: number; position_id: string }[]).sort((a, b) => a.rank - b.rank);
   let roleTitle: string | null = null;
-  const patch: Record<string, unknown> = { status: input.status };
 
   if (input.status === "accepted") {
     const positionId = input.positionId || rankings[0]?.position_id;
     if (!positionId) return { success: false, error: "Choose a seat to assign before accepting." };
     const { data: pos } = await admin.from("positions").select("id, slug, title, is_active").eq("id", positionId).maybeSingle();
     if (!pos?.slug || !pos.is_active) return { success: false, error: "That seat is not available." };
-    const { error: seatErr } = await admin.rpc("assign_seat", { p_profile_id: app.applicant_id, p_position_slug: pos.slug });
-    if (seatErr) return { success: false, error: friendlySeatError(seatErr.message) };
+    // One database transaction: assign the seat, set the status, note an alternate seat.
+    const { error: acceptErr } = await admin.rpc("accept_application", { p_application_id: app.id, p_position_id: pos.id });
+    if (acceptErr) return { success: false, error: friendlySeatError(acceptErr.message) };
     roleTitle = pos.title;
-    patch.alternate_position_id = rankings[0]?.position_id === pos.id ? null : pos.id;
-  } else if (rankings[0]) {
-    const { data: pos } = await admin.from("positions").select("title").eq("id", rankings[0].position_id).maybeSingle();
-    roleTitle = pos?.title ?? null;
+  } else {
+    if (rankings[0]) {
+      const { data: pos } = await admin.from("positions").select("title").eq("id", rankings[0].position_id).maybeSingle();
+      roleTitle = pos?.title ?? null;
+    }
+    const { error } = await admin.from("applications").update({ status: input.status }).eq("id", app.id);
+    if (error) return { success: false, error: error.message };
   }
-
-  const { error } = await admin.from("applications").update(patch).eq("id", app.id);
-  if (error) return { success: false, error: error.message };
   revalidatePath("/portal/review");
   revalidatePath("/portal");
 

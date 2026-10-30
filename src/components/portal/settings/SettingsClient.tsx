@@ -19,7 +19,8 @@ export default function SettingsClient({ profile, reminder }: Props) {
   const [funFact, setFunFact] = useState(profile?.fun_fact ?? "");
   const [theme, setTheme] = useState<"light" | "dark">(profile?.theme ?? "dark");
   const [navStyle, setNavStyle] = useState<"sidebar" | "topnav">(profile?.nav_style ?? "sidebar");
-  const [remindersOn, setRemindersOn] = useState(reminder?.email_enabled ?? true);
+  // No row yet means no reminders are sent, so the switch must start off.
+  const [remindersOn, setRemindersOn] = useState(reminder?.email_enabled ?? false);
   const [daysBefore, setDaysBefore] = useState<ReminderLeadTime>(reminder?.days_before ?? 7);
   const showReminders = !!profile && profile.role !== "applicant";
   const [saving, setSaving] = useState(false);

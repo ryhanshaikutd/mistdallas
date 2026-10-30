@@ -28,14 +28,19 @@ create or replace function auth.uid() returns uuid
 language sql stable as $$
   select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
 $$;
+create or replace function auth.role() returns text
+language sql stable as $$
+  select nullif(current_setting('request.jwt.claim.role', true), '')
+$$;
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+  if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin bypassrls; end if;
 end $$;
-grant usage on schema public to anon, authenticated;
-alter default privileges in schema public grant all on tables to anon, authenticated;
-alter default privileges in schema public grant all on sequences to anon, authenticated;
-alter default privileges in schema public grant execute on functions to anon, authenticated;
+grant usage on schema public to anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
 `;
 
 export function migrationFiles(): string[] {
@@ -76,9 +81,19 @@ export async function signUp(
 /** Switches the connection to the `authenticated` role as `userId`; null resets to superuser. */
 export async function asUser(db: PGlite, userId: string | null): Promise<void> {
   if (userId === null) {
-    await db.exec("reset role; select set_config('request.jwt.claim.sub', '', false);");
+    await db.exec("reset role; select set_config('request.jwt.claim.sub', '', false); select set_config('request.jwt.claim.role', '', false);");
     return;
   }
-  await db.query("select set_config('request.jwt.claim.sub', $1, false)", [userId]);
+  await db.query("select set_config('request.jwt.claim.sub', $1, false), set_config('request.jwt.claim.role', 'authenticated', false)", [userId]);
   await db.exec("set role authenticated");
+}
+
+/** The public anon key: no user, role claim 'anon'. */
+export async function asAnon(db: PGlite): Promise<void> {
+  await db.exec("select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', 'anon', false); set role anon;");
+}
+
+/** The service-role key used by server actions: no user, role claim 'service_role'. */
+export async function asServiceRole(db: PGlite): Promise<void> {
+  await db.exec("select set_config('request.jwt.claim.sub', '', false), set_config('request.jwt.claim.role', 'service_role', false); set role service_role;");
 }
