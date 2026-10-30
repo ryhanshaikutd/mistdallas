@@ -4,14 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { submitApplication } from "@/app/portal/apply/actions";
-import type { Position, Profile } from "@/lib/types";
-import { TEAM_LABELS, TIME_COMMITMENT_OPTIONS } from "@/lib/constants";
+import type { Position, Profile, SeasonSettings } from "@/lib/types";
+import { TEAM_LABELS, TEAM_ORDER, TIME_COMMITMENT_OPTIONS } from "@/lib/constants";
+import { format, parseISO } from "date-fns";
 import { CheckCircle2, Lock, ChevronDown, ChevronUp, Star, ArrowRight } from "lucide-react";
 
 interface Props {
   profile: Profile | null;
   positions: Position[];
   cycle: { id: string; type: string; year: number } | null;
+  season: SeasonSettings | null;
   existingApplication: { id: string; status: string } | null;
   isInternal: boolean;
 }
@@ -40,7 +42,7 @@ const inputStyle = {
   color: "var(--p-text)",
 };
 
-export default function ApplicationForm({ profile, positions, cycle, existingApplication, isInternal }: Props) {
+export default function ApplicationForm({ profile, positions, cycle, season, existingApplication, isInternal }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -147,6 +149,7 @@ export default function ApplicationForm({ profile, positions, cycle, existingApp
         </h2>
         <p className="mt-1 text-sm" style={{ color: "var(--p-muted)" }}>
           {isInternal ? "Internal recruitment · returning member" : "External recruitment · open to all"}
+          {season?.applications_due && <> · Applications due {format(parseISO(season.applications_due), "MMMM d, yyyy")}</>}
         </p>
       </div>
 
@@ -337,9 +340,17 @@ export default function ApplicationForm({ profile, positions, cycle, existingApp
             })}
           </div>
 
+          {positions.length === 0 && (
+            <div className="rounded-2xl border p-8 text-center" style={cardStyle}>
+              <Lock className="w-7 h-7 mx-auto mb-2 opacity-40" style={{ color: "var(--p-muted)" }} />
+              <p className="text-sm font-semibold" style={{ color: "var(--p-text)" }}>No positions are open right now.</p>
+              <p className="text-xs mt-1" style={{ color: "var(--p-muted)" }}>Leadership opens seats from the Positions page. Check back soon.</p>
+            </div>
+          )}
+
           {/* Team browser */}
           <div className="rounded-2xl border overflow-hidden" style={cardStyle}>
-            {Object.entries(byTeam).sort(([a], [b]) => a.localeCompare(b)).map(([team, teamPositions]) => {
+            {Object.entries(byTeam).sort(([a], [b]) => TEAM_ORDER.indexOf(a as (typeof TEAM_ORDER)[number]) - TEAM_ORDER.indexOf(b as (typeof TEAM_ORDER)[number])).map(([team, teamPositions]) => {
               const open = expandedTeam === team;
               return (
                 <div key={team} className="border-b last:border-b-0" style={{ borderColor: "var(--p-border)" }}>

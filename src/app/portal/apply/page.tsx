@@ -1,11 +1,17 @@
 import { requireUser } from "@/lib/auth";
 import { INTERNAL_EMAIL_DOMAIN } from "@/lib/constants";
+import { getCurrentSeason } from "@/lib/season";
 import ApplicationForm from "@/components/portal/apply/ApplicationForm";
 
 export default async function ApplyPage() {
   const { user, profile, supabase } = await requireUser();
-  const { data: positions } = await supabase.from("positions").select("*").eq("is_active", true).order("team").order("phase");
-  const { data: cycle } = await supabase.from("recruitment_cycles").select("*").neq("type", "closed").order("created_at", { ascending: false }).limit(1).maybeSingle();
+
+  const [{ data: positions }, { data: cycle }, season] = await Promise.all([
+    // Only seats leadership has opened can be ranked.
+    supabase.from("positions").select("*").eq("is_active", true).eq("open_for_applications", true).order("sort_order"),
+    supabase.from("recruitment_cycles").select("*").neq("type", "closed").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    getCurrentSeason(supabase),
+  ]);
 
   // Check if already applied this cycle
   const { data: existing } = cycle
@@ -19,6 +25,7 @@ export default async function ApplyPage() {
       profile={profile}
       positions={positions ?? []}
       cycle={cycle}
+      season={season}
       existingApplication={existing}
       isInternal={isInternal}
     />
