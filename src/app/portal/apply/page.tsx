@@ -1,14 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
 import { INTERNAL_EMAIL_DOMAIN } from "@/lib/constants";
 import ApplicationForm from "@/components/portal/apply/ApplicationForm";
 
 export default async function ApplyPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  const { user, profile, supabase } = await requireUser();
   const { data: positions } = await supabase.from("positions").select("*").eq("is_active", true).order("team").order("phase");
   const { data: cycle } = await supabase.from("recruitment_cycles").select("*").neq("type", "closed").order("created_at", { ascending: false }).limit(1).maybeSingle();
 

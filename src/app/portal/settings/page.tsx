@@ -1,15 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
 import SettingsClient from "@/components/portal/settings/SettingsClient";
 
 export default async function SettingsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("*").eq("id", user.id).single();
-
+  const { profile } = await requireUser();
   return <SettingsClient profile={profile} />;
 }

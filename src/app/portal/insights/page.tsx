@@ -1,18 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { isLeadership } from "@/lib/constants";
+import { requireRole } from "@/lib/auth";
+import { DIRECTOR_PLUS, isLeadership } from "@/lib/constants";
 import InsightsDashboard from "@/components/portal/insights/InsightsDashboard";
 
 export default async function InsightsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-
-  if (!isLeadership(profile?.role) && profile?.role !== "director") redirect("/portal");
-
-  const leadership = isLeadership(profile?.role);
+  const { profile, supabase } = await requireRole(DIRECTOR_PLUS);
+  const leadership = isLeadership(profile.role);
 
   const appsQuery = supabase
     .from("applications")
@@ -22,7 +14,7 @@ export default async function InsightsPage() {
     .from("tasks")
     .select("id, status, team");
 
-  if (!leadership && profile?.team) {
+  if (!leadership && profile.team) {
     tasksQuery.eq("team", profile.team);
   }
 

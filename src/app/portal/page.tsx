@@ -1,15 +1,10 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
 import { isLeadership } from "@/lib/constants";
 import DashboardClient from "@/components/portal/DashboardClient";
 
 export default async function PortalDashboard() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-  const isReviewer = isLeadership(profile?.role);
+  const { user, profile, supabase } = await requireUser();
+  const isReviewer = isLeadership(profile.role);
 
   const [{ data: applications }, { data: tasks }, { data: milestones }, { data: cycle }] = await Promise.all([
     isReviewer

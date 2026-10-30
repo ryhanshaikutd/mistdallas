@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { requireUser } from "@/lib/auth";
 import PortalSidebar from "@/components/portal/PortalSidebar";
 import PortalTopNav from "@/components/portal/PortalTopNav";
 import PortalHeader from "@/components/portal/PortalHeader";
@@ -11,18 +11,11 @@ export const metadata: Metadata = {
 };
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { profile } = await requireUser();
+  if (!profile.onboarded) redirect("/onboarding");
 
-  // Use admin client so RLS never blocks the profile read
-  const admin = createAdminClient();
-  const { data: profile } = await admin.from("profiles").select("*").eq("id", user.id).single();
-
-  if (profile && !profile.onboarded) redirect("/onboarding");
-
-  const theme = profile?.theme ?? "dark";
-  const navStyle = profile?.nav_style ?? "sidebar";
+  const theme = profile.theme ?? "dark";
+  const navStyle = profile.nav_style ?? "sidebar";
 
   return (
     <div data-theme={theme} className="h-screen overflow-hidden flex flex-col" style={{ background: "var(--p-bg)", color: "var(--p-text)", fontFamily: "var(--font-dm-sans)" }}>
