@@ -43,6 +43,10 @@ cp .env.local.example .env.local
    - Copy `anon public` key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - Copy `service_role` key → `SUPABASE_SERVICE_ROLE_KEY`
 
+### Email and password sign-in
+
+Works as soon as the Email provider is on (it is by default). Password-reset emails are sent by the app through Resend (step 4), not by Supabase's mailer, so the reset link works for anyone, not just project members. There is no self-serve sign-up; add accounts under **Authentication → Users** or let people in through Google.
+
 ### Enable Google OAuth in Supabase
 
 1. Go to **Authentication → Providers → Google** → Enable

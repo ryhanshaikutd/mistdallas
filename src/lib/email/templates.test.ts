@@ -61,3 +61,14 @@ describe("reminderEmail", () => {
     expect(seven.html).toContain("Assalamu alaykum Zed");
   });
 });
+
+describe("passwordResetEmail", () => {
+  it("links to the reset URL, escapes it, and says the link expires", async () => {
+    const { passwordResetEmail } = await import("@/lib/email/templates");
+    const { subject, html } = passwordResetEmail({ resetUrl: `${SITE}/auth/confirm?token_hash=a&type=recovery&next=/x` });
+    expect(subject).toBe("Reset your MIST Dallas password");
+    expect(html).toContain(`href="${SITE}/auth/confirm?token_hash=a&amp;type=recovery&amp;next=/x"`);
+    expect(html).toMatch(/expire/i);
+    expect(html).toMatch(/ignore this email/i);
+  });
+});

@@ -30,6 +30,8 @@ The script prints a NOTICE if any handbook workbook row had checked deliverables
 
 ## 2. Sign-in
 
+Two ways in. **Email and password** works for every existing account right away (the handbook accounts keep their passwords); **Forgot password?** on the sign-in page emails a one-time link through Resend, so `RESEND_API_KEY` and `RESEND_FROM_EMAIL` must be set wherever the site runs. There is no self-serve sign-up: new accounts come from Google sign-in (applicants) or from Authentication → Users → *Add user* in the dashboard. **Google** needs the setup below and is the only route for someone without an account.
+
 - [ ] Supabase → Authentication → Providers → Google: enable it with the Google Cloud client id and secret.
 - [ ] Google Cloud → the OAuth client: add `https://pgdrhoifisonmzuaeetu.supabase.co/auth/v1/callback` as an authorized redirect URI.
 - [ ] Supabase → Authentication → URL configuration: site URL `https://mistdallas.org`; redirect URLs `https://mistdallas.org/auth/callback` and `http://localhost:3000/auth/callback`.

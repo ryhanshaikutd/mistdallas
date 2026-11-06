@@ -96,3 +96,15 @@ export function reminderEmail({ fullName, title, dateLabel, detail, daysBefore, 
     ),
   };
 }
+
+export function passwordResetEmail({ resetUrl }: { resetUrl: string }): { subject: string; html: string } {
+  return {
+    subject: "Reset your MIST Dallas password",
+    html: shell(
+      h2("Reset your password") +
+        p("Someone asked to reset the password for your MIST Dallas board portal account. Click the button to choose a new one.") +
+        button(resetUrl, "Choose a new password", "#1B3464") +
+        small("This link expires in about an hour and can be used once. If you didn't ask for a reset, you can ignore this email; your password stays the same.")
+    ),
+  };
+}

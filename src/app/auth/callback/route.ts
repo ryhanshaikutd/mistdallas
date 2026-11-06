@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-
-/** Only allow a same-origin relative path; anything else (e.g. "//evil.com", "@evil.com") falls back to /portal. */
-function safeNextPath(raw: string | null): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/\\")) return "/portal";
-  return raw;
-}
+import { safeNextPath } from "@/lib/login/next-path";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeNextPath(searchParams.get("next"));
+  const next = safeNextPath(searchParams.get("next"), "/portal");
 
   if (code) {
     const supabase = await createClient();
