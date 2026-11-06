@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { isEmailConfigured, sendEmail, siteUrl } from "@/lib/email/resend";
 import { sendPasswordReset, type ResetResult } from "@/lib/login/password-reset";
 
-export type ForgotState = { status: "idle" } | { status: "sent" } | { status: "error"; error: string };
+export type ForgotState = { status: "idle" } | { status: "sent" } | { status: "error"; error: string; email: string };
 
 /**
  * "Forgot password?" form. Always answers the same for known and unknown
@@ -27,5 +27,5 @@ export async function requestPasswordReset(_prev: ForgotState, formData: FormDat
       return { hashedToken: data.properties?.hashed_token ?? null, error: null };
     },
   });
-  return result.ok ? { status: "sent" } : { status: "error", error: result.error };
+  return result.ok ? { status: "sent" } : { status: "error", error: result.error, email };
 }

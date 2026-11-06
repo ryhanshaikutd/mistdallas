@@ -30,7 +30,8 @@ export default function ForgotPasswordClient() {
       <form action={formAction} className="space-y-4">
         <label className="block">
           <span className="text-sm font-medium text-[#2D2F3A]">Email</span>
-          <input name="email" type="email" autoComplete="email" required autoFocus className={inputClass} />
+          <input name="email" type="email" autoComplete="email" required autoFocus className={inputClass}
+            defaultValue={state.status === "error" ? state.email : ""} />
         </label>
         {state.status === "error" && <p role="alert" className="text-sm text-red-600">{state.error}</p>}
         <button type="submit" disabled={pending} className={primaryButtonClass}>
