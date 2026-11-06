@@ -2,18 +2,27 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sun, Moon, PanelLeft, PanelTop, Check, Save } from "lucide-react";
-import type { Profile } from "@/lib/types";
-import { saveSettings } from "@/app/portal/settings/actions";
+import { Sun, Moon, PanelLeft, PanelTop, Check, Save, Bell } from "lucide-react";
+import type { Profile, ReminderLeadTime } from "@/lib/types";
+import { saveSettings, saveReminderPreferences } from "@/app/portal/settings/actions";
 
-interface Props { profile: Profile | null }
+interface Props {
+  profile: Profile | null;
+  reminder: { email_enabled: boolean; days_before: ReminderLeadTime } | null;
+}
 
-export default function SettingsClient({ profile }: Props) {
+const LEAD_TIMES: ReminderLeadTime[] = [1, 3, 7, 14];
+
+export default function SettingsClient({ profile, reminder }: Props) {
   const router = useRouter();
   const [preferredName, setPreferredName] = useState(profile?.preferred_name ?? "");
   const [funFact, setFunFact] = useState(profile?.fun_fact ?? "");
   const [theme, setTheme] = useState<"light" | "dark">(profile?.theme ?? "dark");
   const [navStyle, setNavStyle] = useState<"sidebar" | "topnav">(profile?.nav_style ?? "sidebar");
+  // No row yet means no reminders are sent, so the switch must start off.
+  const [remindersOn, setRemindersOn] = useState(reminder?.email_enabled ?? false);
+  const [daysBefore, setDaysBefore] = useState<ReminderLeadTime>(reminder?.days_before ?? 7);
+  const showReminders = !!profile && profile.role !== "applicant";
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +32,10 @@ export default function SettingsClient({ profile }: Props) {
     setSaved(false);
     setError(null);
     const result = await saveSettings({ preferred_name: preferredName, fun_fact: funFact, theme, nav_style: navStyle });
-    if (result.success) {
+    const reminderResult = showReminders ? await saveReminderPreferences({ email_enabled: remindersOn, days_before: daysBefore }) : { success: true as const };
+    if (result.success && !reminderResult.success) {
+      setError(reminderResult.error);
+    } else if (result.success) {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
       router.refresh();
@@ -141,6 +153,31 @@ export default function SettingsClient({ profile }: Props) {
           ))}
         </div>
       </div>
+
+      {/* Deadline reminders */}
+      {showReminders && (
+        <div style={cardStyle}>
+          <h2 className="text-sm font-bold mb-4" style={{ color: "var(--p-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Deadline reminders</h2>
+          <p className="text-sm mb-4" style={{ color: "var(--p-muted)" }}>A daily email for calendar deadlines that are coming up, sent to {profile?.email}.</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <button onClick={() => setRemindersOn(v => !v)} role="switch" aria-checked={remindersOn}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all"
+              style={remindersOn
+                ? { borderColor: "#2E7BC4", background: "#2E7BC415", color: "#2E7BC4" }
+                : { borderColor: "var(--p-border)", background: "var(--p-card-hover)", color: "var(--p-muted)" }}>
+              <Bell className="w-4 h-4" /> {remindersOn ? "Reminders on" : "Reminders off"}
+            </button>
+            <label className="flex items-center gap-2 text-sm" style={{ color: "var(--p-text)" }}>
+              Send
+              <select value={daysBefore} onChange={e => setDaysBefore(Number(e.target.value) as ReminderLeadTime)} disabled={!remindersOn}
+                style={{ ...inputStyle, width: "auto", padding: "8px 12px" }}>
+                {LEAD_TIMES.map(d => <option key={d} value={d}>{d} day{d === 1 ? "" : "s"}</option>)}
+              </select>
+              before each deadline
+            </label>
+          </div>
+        </div>
+      )}
 
       {/* Save */}
       {error && <p className="text-sm text-red-400">{error}</p>}

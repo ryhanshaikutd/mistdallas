@@ -76,8 +76,11 @@ export async function submitApplication(input: ApplicationInput): Promise<Result
   if (existing) return { success: false, error: "You've already applied this cycle." };
 
   const positionIds = ranked.concat(isInternal && input.current_position_id ? [input.current_position_id] : []);
-  const { data: positions } = await admin.from("positions").select("id").in("id", positionIds).eq("is_active", true);
+  const { data: positions } = await admin.from("positions").select("id, open_for_applications").in("id", positionIds).eq("is_active", true);
   if ((positions?.length ?? 0) !== new Set(positionIds).size) return { success: false, error: "One of the selected positions is no longer available." };
+  if (positions!.some((p) => ranked.includes(p.id) && !p.open_for_applications)) {
+    return { success: false, error: "That position isn't accepting applications." };
+  }
 
   // ── Write ─────────────────────────────────────────────────────────────────
   const commitments = Object.fromEntries(COMMITMENT_KEYS.map((k) => [k, true]));

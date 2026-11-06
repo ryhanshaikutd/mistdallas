@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useIsClient } from "@/lib/hooks/useIsClient";
-import type { Profile } from "@/lib/types";
-import { TEAM_LABELS, isLeadership } from "@/lib/constants";
-import { Users, ClipboardList, CheckSquare, Calendar, ArrowRight, Clock, Circle, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import type { Announcement, Profile, SeasonSettings, Team } from "@/lib/types";
+import type { PhaseId } from "@/lib/workbook/types";
+import type { NextAction } from "@/lib/workbook/progress";
+import { TEAM_LABELS, PHASE_LABELS, PRIORITY_COLORS, isLeadership } from "@/lib/constants";
+import { daysUntil } from "@/lib/season";
+import { deadlineTiming, upcomingDeadlines } from "@/lib/deadlines";
+import { Users, ClipboardList, CheckSquare, Calendar, ArrowRight, Clock, Circle, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, BookOpen, Megaphone, X, Flag, Timer } from "lucide-react";
 import { format, startOfWeek, addDays, isSameDay, parseISO } from "date-fns";
 
 interface Task { id: string; title: string; status: string; due_date?: string | null; priority: string; team?: string }
 interface App { id: string; status: string; applicant_name?: string; created_at?: string }
-interface Milestone { id: string; title: string; target_date?: string | null }
+interface Milestone { id: string; title: string; target_date?: string | null; owner_label?: string }
 
 interface Props {
   profile: Profile | null;
@@ -18,6 +22,69 @@ interface Props {
   pendingTasks: Task[];
   milestones: Milestone[];
   activeCycle: { type: string; year: number } | null;
+  season: SeasonSettings | null;
+  currentPhase: PhaseId | null;
+  todayIso: string;
+  announcements: Announcement[];
+  seat: { slug: string; title: string; team: Team } | null;
+  workbookPercent: number | null;
+  nextActions: NextAction[];
+}
+
+function AnnouncementStrip({ announcements }: { announcements: Announcement[] }) {
+  const [dismissed, setDismissed] = useState<string[]>([]);
+  const visible = announcements.filter(a => !dismissed.includes(a.id));
+  if (visible.length === 0) return null;
+  return (
+    <div className="space-y-2">
+      {visible.map(a => (
+        <div key={a.id} className="rounded-2xl border px-5 py-4 flex items-start gap-3"
+          style={{ background: "var(--p-card)", borderColor: "var(--p-border)", borderLeft: `4px solid ${PRIORITY_COLORS[a.priority]}`, boxShadow: "var(--p-shadow)" }}>
+          <Megaphone className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: PRIORITY_COLORS[a.priority] }} />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>{a.title}</div>
+            {a.body && <p className="text-sm mt-1 whitespace-pre-line" style={{ color: "var(--p-text-secondary)" }}>{a.body}</p>}
+          </div>
+          <button onClick={() => setDismissed(d => [...d, a.id])} aria-label={`Dismiss announcement: ${a.title}`}
+            className="p-1 rounded-lg transition-colors" style={{ color: "var(--p-muted)" }}>
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SeasonTiles({ season, currentPhase, todayIso, milestones }: { season: SeasonSettings; currentPhase: PhaseId | null; todayIso: string; milestones: Milestone[] }) {
+  const days = daysUntil(season.tournament_start, todayIso);
+  const next = upcomingDeadlines(
+    milestones.map(m => ({ id: m.id, title: m.title, description: null, target_date: m.target_date ?? null })),
+    todayIso, 1
+  )[0];
+  const tiles = [
+    { icon: Timer, label: days >= 0 ? "Days to tournament" : "Days since tournament", value: Math.abs(days), sub: format(parseISO(season.tournament_start), "MMM d, yyyy") },
+    { icon: Flag, label: "Current phase", value: currentPhase ? PHASE_LABELS[currentPhase] : "—", sub: `Season ${season.year}` },
+    { icon: Calendar, label: "Next deadline", value: next ? next.title : "—", sub: next ? deadlineTiming(next.target_date, todayIso).label : "Nothing scheduled" },
+  ];
+  return (
+    <div className="grid sm:grid-cols-3 gap-3">
+      {tiles.map(t => {
+        const Icon = t.icon;
+        return (
+          <div key={t.label} className="rounded-2xl border p-4 flex items-start gap-3" style={{ background: "var(--p-card)", borderColor: "var(--p-border)", boxShadow: "var(--p-shadow)" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "var(--p-accent)" + "18" }}>
+              <Icon className="w-4 h-4" style={{ color: "var(--p-accent)" }} />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs" style={{ color: "var(--p-muted)" }}>{t.label}</div>
+              <div className="font-bold truncate" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>{t.value}</div>
+              <div className="text-xs truncate" style={{ color: "var(--p-muted)" }}>{t.sub}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -174,7 +241,7 @@ function WeekView({ tasks, milestones }: { tasks: Task[]; milestones: Milestone[
   );
 }
 
-export default function DashboardClient({ profile, recentApplications, pendingTasks, milestones, activeCycle }: Props) {
+export default function DashboardClient({ profile, recentApplications, pendingTasks, milestones, activeCycle, season, currentPhase, todayIso, announcements, seat, workbookPercent, nextActions }: Props) {
   const isClient = useIsClient();
   const hour = isClient ? new Date().getHours() : 12; // neutral default during SSR
 
@@ -186,7 +253,9 @@ export default function DashboardClient({ profile, recentApplications, pendingTa
     ...(isApplicant ? [{ href: "/portal/apply", label: "Submit Application", icon: ClipboardList, color: "#1B3464" }] : []),
     ...(isReviewer ? [{ href: "/portal/review", label: "Review Applications", icon: Users, color: "#2E7BC4" }] : []),
     ...(isReviewer ? [{ href: "/portal/interviews", label: "Manage Interviews", icon: Calendar, color: "#1A6B3C" }] : []),
-    ...(!isApplicant ? [{ href: "/portal/planning", label: "Planning Board", icon: CheckSquare, color: "#2EA87A" }] : []),
+    ...(seat && workbookPercent !== null ? [{ href: "/portal/workbook", label: "My Workbook", icon: BookOpen, color: "#7C3AED" }] : []),
+    ...(!isApplicant ? [{ href: "/portal/teams", label: "Teams", icon: Users, color: "#2E7BC4" }] : []),
+    ...(!isApplicant && !isReviewer ? [{ href: "/portal/planning", label: "Planning Board", icon: CheckSquare, color: "#2EA87A" }] : []),
   ];
 
   return (
@@ -202,6 +271,51 @@ export default function DashboardClient({ profile, recentApplications, pendingTa
             : "No active recruitment cycle."}
         </p>
       </div>
+
+      <AnnouncementStrip announcements={announcements} />
+
+      {season && <SeasonTiles season={season} currentPhase={currentPhase} todayIso={todayIso} milestones={milestones} />}
+
+      {seat && workbookPercent !== null && (
+        <div className="grid lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border p-5" style={{ background: "var(--p-card)", borderColor: "var(--p-border)", boxShadow: "var(--p-shadow)" }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-bold text-sm" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>My workbook</span>
+              <Link href="/portal/workbook" className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--p-accent)" }}>
+                Open workbook <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="text-sm font-semibold" style={{ color: "var(--p-text)" }}>{seat.title}</div>
+            <div className="text-xs mb-3" style={{ color: "var(--p-muted)" }}>{TEAM_LABELS[seat.team]}</div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--p-border)" }}>
+              <div className="h-full rounded-full" style={{ width: `${workbookPercent}%`, background: "var(--p-accent-green)" }} />
+            </div>
+            <div className="text-xs mt-1.5" style={{ color: "var(--p-muted)" }}>{workbookPercent}% of deliverables checked off</div>
+          </div>
+          <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--p-card)", borderColor: "var(--p-border)", boxShadow: "var(--p-shadow)" }}>
+            <div className="px-5 py-4 border-b" style={{ borderColor: "var(--p-border)" }}>
+              <span className="font-bold text-sm" style={{ fontFamily: "var(--font-syne)", color: "var(--p-text)" }}>Next actions</span>
+              <span className="text-xs ml-2" style={{ color: "var(--p-muted)" }}>unchecked deliverables due within two weeks</span>
+            </div>
+            <div className="divide-y" style={{ borderColor: "var(--p-border)" }}>
+              {nextActions.length === 0 ? (
+                <div className="py-8 text-center">
+                  <CheckCircle2 className="w-7 h-7 mx-auto mb-2 opacity-30" style={{ color: "var(--p-accent-green)" }} />
+                  <p className="text-sm" style={{ color: "var(--p-muted)" }}>Nothing due in the next two weeks.</p>
+                </div>
+              ) : nextActions.map(a => (
+                <Link key={`${a.phase}-${a.text}`} href="/portal/workbook" className="px-5 py-3 flex items-center gap-3 hover:opacity-90">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: a.overdue ? "#EF4444" : "var(--p-accent)" }} />
+                  <span className="text-sm flex-1 truncate" style={{ color: "var(--p-text)" }}>{a.text}</span>
+                  <span className="text-xs flex-shrink-0" style={{ color: a.overdue ? "#EF4444" : "var(--p-muted)" }}>
+                    {deadlineTiming(a.due, todayIso).label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick links */}
       {quickLinks.length > 0 && (

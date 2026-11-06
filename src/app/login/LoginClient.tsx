@@ -1,16 +1,24 @@
 "use client";
 
-import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Globe } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { INTERNAL_EMAIL_DOMAIN } from "@/lib/constants";
-import { Globe, Star } from "lucide-react";
+import AuthShell, { inputClass, primaryButtonClass } from "@/components/auth/AuthShell";
 
-export default function LoginClient() {
-  const [loading, setLoading] = useState(false);
+export default function LoginClient({ notice }: { notice: string | null }) {
+  const router = useRouter();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function signInWithGoogle() {
-    setLoading(true);
+    setGoogleLoading(true);
+    setError(null);
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -21,96 +29,47 @@ export default function LoginClient() {
     });
     if (error) {
       console.error(error);
-      setLoading(false);
+      setError("Google sign-in didn't start. Please try again.");
+      setGoogleLoading(false);
     }
   }
 
+  async function signInWithPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSigningIn(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) {
+      setSigningIn(false);
+      setError(
+        error.message === "Invalid login credentials"
+          ? "Email or password is incorrect."
+          : error.message === "Email not confirmed"
+            ? "This email hasn't been confirmed yet. Ask a board lead to help."
+            : error.message
+      );
+      return;
+    }
+    router.replace("/portal");
+    router.refresh();
+  }
+
+  const busy = googleLoading || signingIn;
+
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel — branding */}
-      <div
-        className="hidden lg:flex flex-col justify-between w-1/2 p-12 text-white relative overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #1B3464 0%, #0F2240 50%, #1A6B3C 100%)",
-        }}
-      >
-        <div className="absolute top-1/3 right-0 w-96 h-96 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #2E7BC4, transparent)" }} />
-        <div className="absolute bottom-1/4 left-0 w-64 h-64 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #2EA87A, transparent)" }} />
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="MIST Dallas" width={48} height={50} className="object-contain brightness-0 invert" />
-            <span className="font-bold text-xl">MIST Dallas</span>
-          </div>
-        </div>
-
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[#7ADBB8] text-sm px-3 py-1 rounded-full mb-6">
-            <Star className="w-3 h-3 fill-current" />
-            Board Portal
-          </div>
-          <h2 className="text-4xl font-bold leading-tight mb-4">
-            Welcome back to
-            <br />
-            the team.
-          </h2>
-          <p className="text-white/60 text-lg leading-relaxed">
-            Sign in to manage applications, plan for the year, and keep the tournament running smoothly.
-          </p>
-        </div>
-
-        <div className="relative z-10 grid grid-cols-2 gap-4">
-          {[
-            { label: "Applications", desc: "Review & manage" },
-            { label: "Planning", desc: "Tasks & milestones" },
-            { label: "Interviews", desc: "Schedule & track" },
-            { label: "Insights", desc: "Data & analytics" },
-          ].map((item) => (
-            <div key={item.label} className="bg-white/5 border border-white/10 rounded-xl p-4">
-              <div className="font-semibold text-white text-sm">{item.label}</div>
-              <div className="text-white/40 text-xs mt-0.5">{item.desc}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right panel — login form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 bg-[#FAFAF8]">
-        <div className="w-full max-w-sm">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-8">
-            <Image src="/logo.png" alt="MIST Dallas" width={64} height={67} className="object-contain" />
-          </div>
-
-          <h1 className="text-3xl font-bold text-[#2D2F3A] mb-2">Sign in</h1>
-          <p className="text-gray-500 mb-8">
-            Use your MIST or Google account to access the board portal.
-          </p>
-
-          <button
-            onClick={signInWithGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 text-[#2D2F3A] font-semibold py-3.5 px-6 rounded-xl hover:border-[#2E7BC4] hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-gray-300 border-t-[#2E7BC4] rounded-full animate-spin" />
-            ) : (
-              <Globe className="w-5 h-5 text-[#4285F4]" />
-            )}
-            {loading ? "Signing in…" : "Continue with Google"}
-          </button>
-
+    <AuthShell
+      title="Sign in"
+      intro="Use your Google account or your email and password."
+      footer={
+        <>
           <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl">
             <p className="text-xs text-blue-700 font-medium mb-1">Internal board members</p>
             <p className="text-xs text-blue-600">
-              Sign in with your{" "}
-              <span className="font-semibold">@{INTERNAL_EMAIL_DOMAIN}</span> account
+              Sign in with your <span className="font-semibold">@{INTERNAL_EMAIL_DOMAIN}</span> account
               to be recognized as a current board member.
             </p>
           </div>
-
           <p className="text-center text-xs text-gray-400 mt-8">
             This portal is for MIST Dallas board members only.
             <br />
@@ -119,8 +78,51 @@ export default function LoginClient() {
               Visit MyMIST
             </a>
           </p>
-        </div>
+        </>
+      }
+    >
+      {notice && (
+        <p role="status" className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{notice}</p>
+      )}
+
+      <button
+        onClick={signInWithGoogle}
+        disabled={busy}
+        className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-200 text-[#2D2F3A] font-semibold py-3.5 px-6 rounded-xl hover:border-[#2E7BC4] hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {googleLoading ? (
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-[#2E7BC4] rounded-full animate-spin" />
+        ) : (
+          <Globe className="w-5 h-5 text-[#4285F4]" />
+        )}
+        {googleLoading ? "Signing in…" : "Continue with Google"}
+      </button>
+
+      <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wide text-gray-400">
+        <span className="h-px flex-1 bg-gray-200" />
+        or
+        <span className="h-px flex-1 bg-gray-200" />
       </div>
-    </div>
+
+      <form onSubmit={signInWithPassword} className="space-y-4">
+        <label className="block">
+          <span className="text-sm font-medium text-[#2D2F3A]">Email</span>
+          <input type="email" autoComplete="email" required value={email}
+            onChange={(e) => setEmail(e.target.value)} className={inputClass} />
+        </label>
+        <label className="block">
+          <span className="flex items-center justify-between text-sm font-medium text-[#2D2F3A]">
+            Password
+            <Link href="/login/forgot" className="text-xs font-normal text-[#2E7BC4] hover:underline">Forgot password?</Link>
+          </span>
+          <input type="password" autoComplete="current-password" required value={password}
+            onChange={(e) => setPassword(e.target.value)} className={inputClass} />
+        </label>
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+        <button type="submit" disabled={busy} className={primaryButtonClass}>
+          {signingIn ? "Signing in…" : "Sign in with email"}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

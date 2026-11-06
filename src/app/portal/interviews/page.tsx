@@ -1,15 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { isLeadership } from "@/lib/constants";
+import { requireLeadership } from "@/lib/auth";
 import InterviewsClient from "@/components/portal/interviews/InterviewsClient";
 
 export default async function InterviewsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-  if (!isLeadership(profile?.role)) redirect("/portal");
+  const { profile, supabase } = await requireLeadership();
 
   const { data: cycle } = await supabase
     .from("recruitment_cycles")
